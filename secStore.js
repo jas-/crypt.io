@@ -112,7 +112,7 @@
 			 */
 			merge: function(o, d){
 				return $.extend({}, d, o);
-			},
+			}
 		},
 
 		/**
