@@ -38,12 +38,21 @@ Here are a few examples of use to get you started.
 
 ###Default use
 Saving data...
-```$(window).secStore({
+
+```
+$(window).secStore({
   appID: 'stuff',
   data: {key: 'value'}
-});```
+});
+```
 
 Retrieving data...
-```var data = $(window).secStore({
-  appID: 'stuff'
-});```
+
+```
+$(window).secStore({
+  appID: 'stuff',
+  callback: function(obj){
+    /* process obj */
+  }
+});
+```
