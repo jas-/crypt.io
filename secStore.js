@@ -40,7 +40,6 @@
 			aes:            false,
 			debug:          false,
 			callback:       function(){},
-			preCallback:    function(){},
 			errCallback:    function(){}
 		};
 
@@ -62,13 +61,7 @@
 				/* Merge user supplied options with defaults */
 				var opts = _setup.merge(o, defaults);
 
-				/* Initialize setup */
-				if (!_setup.init(opts)) {
-					_log.error(o.appID, 'init: An error occured during initialization');
-					return false;
-				}
-
-				return true;
+				return _setup.init(opts);
 			}
 		};
 
@@ -89,15 +82,11 @@
 			 */
 			init: function(o){
 
-				/* handle callback if specified */
-				((o.preCallback)&&($.isFunction(o.preCallback))) ?
-					o.preCallback(_r) : false;
-
 				/* generate key if AES specified */
 				o.uuid = (o.aes) ? _crypto.key(o) : o.uuid;
 
 				var _r = (_libs.size(_storage.toJSON(o.data)) > 0) ?
-					o.data : _storage.retrieve(o, o.appID);
+					_storage.save(o, o.appID, o.data) : _storage.retrieve(o, o.appID);
 
 				/* handle callback if specified */
 				((o.callback)&&($.isFunction(o.callback))) ?
