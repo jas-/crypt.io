@@ -113,7 +113,7 @@
 			merge: function(o, d){
 				return $.extend({}, d, o);
 			}
-		},
+		};
 
 		/**
 		 * @method _storage
