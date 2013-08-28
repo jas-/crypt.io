@@ -1,4 +1,6 @@
-#secStore.js - Fork me @ https://www.github.com/jas-/secStore.js
+#secStore.js
+
+   Fork me @ https://www.github.com/jas-/secStore.js
 
 ##Description:
 secStore is simple wrapper to handle client storage mechanisms
