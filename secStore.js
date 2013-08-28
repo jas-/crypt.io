@@ -40,6 +40,7 @@
 			aes:            false,
 			debug:          false,
 			callback:       function(){},
+			preCallback:    function(){},
 			errCallback:    function(){}
 		};
 
@@ -87,6 +88,10 @@
 			 * @returns {Boolean}
 			 */
 			init: function(o){
+
+				/* handle callback if specified */
+				((o.preCallback)&&($.isFunction(o.preCallback))) ?
+					o.preCallback(_r) : false;
 
 				/* generate key if AES specified */
 				o.uuid = (o.aes) ? _crypto.key(o) : o.uuid;
