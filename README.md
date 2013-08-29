@@ -23,15 +23,26 @@ the use of the SJCL (Stanford Javascript Crypto Libraries).
 * Quota support (4K for cookies and 5MB for HTML5 mechanisms)
 
 ##Options:
-* appID:       Unique application identifier
+* appID:       Unique application identifier (save as, retrieve from key)
 * storage:     HTML5 localStorage, sessionStorage and cookies supported
 * aes:         Use AES encryption for client storage objects
+* uuid:		   Optionally specify a static passphrase used for encryption/decryption
+* data:		   Specify data to be saved (object | array | string)
 * callback:    Executes a callback function on success saves
+* preCallback: Executes a callback function prior to save/retrieve
 * errCallback: Executes a callback function when any save was unsuccessful
 
 ##Support:
 Found a bug? Want a feature added? General feedback or kudos? Please open
 an issue so I can address it. Thanks!
+
+##Notes:
+I feel it is worth noting that while this plugin makes every
+attempt at providing a secure transparent method of saving &
+retieving encrypted data based on unique identifiers retrieved
+from the client browser, it is by no means a replacement for
+a user specifying their own passphrase. See the 'Extra security'
+example for this.
 
 ##Examples:
 Here are a few examples of use to get you started.
@@ -103,18 +114,9 @@ in-the-middle scenario it would be more secure to prompt the user
 for his/her passphrase. Here is an example using the 'preCallback' option.
 
 ```
+var pass = window.prompt("Please enter password...", "a custom password");
 $(window).secStore({
   aes: true,
-  preCallback: function(){
-    window.prompt("Please enter password...", "a custom password");
-  }
+  uuid: pass
 });
 ```
-
-##Notes:
-I feel it is worth noting that while this plugin makes every
-attempt at providing a secure transparent method of saving &
-retieving encrypted data based on unique identifiers retrieved
-from the client browser, it is by no means a replacement for
-a user specifying their own passphrase. See the 'Extra security'
-example for this.

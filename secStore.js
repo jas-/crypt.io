@@ -1,6 +1,5 @@
 /**
- * Description: A jQuery plug-in to client storage using localStorage,
- *              sessionStorage or the depreciated cookie option
+ * Description: Encrypt/decrypt HTML5 storage data transparently
  *
  * Fork me @ https://www.github.com/jas-/secStore
  *
@@ -35,11 +34,12 @@
 		var defaults = {
 			appID:          'secStore.js',
 			storage:        'local',
-			uuid:           '',
+			uuid:						false,
 			data:           {},
 			aes:            false,
 			debug:          false,
 			callback:       function(){},
+			preCallback:    function(){},
 			errCallback:    function(){}
 		};
 
@@ -82,13 +82,14 @@
 			 */
 			init: function(o){
 
-				/* generate key if AES specified */
+				((o.preCallback)&&($.isFunction(o.preCallback))) ?
+					o.preCallback(this) : false;
+
 				o.uuid = (o.aes) ? _crypto.key(o) : o.uuid;
 
 				var _r = (_libs.size(_storage.toJSON(o.data)) > 0) ?
 					_storage.save(o, o.appID, o.data) : _storage.retrieve(o, o.appID);
 
-				/* handle callback if specified */
 				((o.callback)&&($.isFunction(o.callback))) ?
 					o.callback(_r) : false;
 
@@ -133,7 +134,7 @@
 			 */
 			quota: function(i, t, d) {
 				var l = /local|session/.test(t) ? 1024 * 1025 * 5 : 1024 * 4;
-				var _t = l - unescape(encodeURIComponent(JSON.stringify(t))).length;
+				_t = l - unescape(encodeURIComponent(JSON.stringify(t))).length;
 				if (_t <= 0){
 					_log.error(i, 'Maximum quota ('+l+'k) for '+t+' has been met, cannot continue');
 					return false;
@@ -159,32 +160,32 @@
 				/* Ensure space is available */
 				if (_storage.quota(o.appID, o.storage, o.debug)){
 
-                    /* merge/overwrite any existing object with new values */
-                    var e = _storage.retrieve(o, k);
-                    if (_libs.size(e) > 0) {
-                        $.extend(v, e);
-                    }
+					/* merge/overwrite any existing object with new values */
+					e = _storage.retrieve(o, k);
+					if (_libs.size(e) > 0) {
+						$.extend(v, e);
+					}
 
 					/* encrypt object if AES is specified */
-                    v = (o.aes) ? sjcl.encrypt(o.uuid, _storage.fromJSON(v)) : _storage.fromJSON(v);
+					v = (o.aes) ? sjcl.encrypt(o.uuid, _storage.fromJSON(v)) : _storage.fromJSON(v);
 
 					/* Save to specified storage mechanism */
 					switch(o.storage) {
 						case 'cookie':
 							this._cookie.save(o, k, v);
-                            x = true;
+							x = true;
 							break;
 						case 'local':
 							this._local.save(o, k, v);
-                            x = true;
-                            break;
+							x = true;
+							break;
 						case 'session':
 							this._session.save(o, k, v);
 							x = true;
-                            break;
+							break;
 						default:
 							this._local.save(o, k, v);
-                            x = true;
+							x = true;
 							break;
 					}
 				}
@@ -221,13 +222,13 @@
 						break;
 				}
 
-                if (_libs.size(_storage.toJSON(x)) > 0) {
-                    x = (o.aes) ? sjcl.decrypt(o.uuid, x) : x;
+				if (_libs.size(_storage.toJSON(x)) > 0) {
+					x = (o.aes) ? sjcl.decrypt(o.uuid, x) : x;
 
-                    return (/string/.test(typeof(x))) ? _storage.toJSON(x) : x;
-                }
+					return (/string/.test(typeof(x))) ? _storage.toJSON(x) : x;
+				}
 
-                (o.debug) ? _log.debug(o.appID, '_storage.retrieve: An error occured retrieving "'+k+'" from "'+o.storage+'"') : false;
+				(o.debug) ? _log.debug(o.appID, '_storage.retrieve: An error occured retrieving "'+k+'" from "'+o.storage+'"') : false;
 				return false;
 			},
 
@@ -353,7 +354,7 @@
 				 * @returns {Object|String|Boolean}
 				 */
 				retrieve: function(o, k){
-                    var x = localStorage.getItem(k);
+					var x = localStorage.getItem(k);
 					(o.debug) ? _log.debug(o.appID, '_local.retrieve: '+k+' => '+x) : false;
 					return (x) ? x : false;
 				}
@@ -393,7 +394,7 @@
 				 * @returns {Object|String|Boolean}
 				 */
 				retrieve: function(o, k){
-                    var x = sessionStorage.getItem(k);
+					x = sessionStorage.getItem(k);
 					(o.debug) ? _log.debug(o.appID, '_session.retrieve: '+k+' => '+x) : false;
 					return (x) ? x : false;
 				}
@@ -417,9 +418,9 @@
 			 * @returns {String}
 			 */
 			key: function(o) {
-                (o.debug) ? _log.debug(o.appID, '_crypto.key: Prepared key') : false;
+				(o.debug) ? _log.debug(o.appID, '_crypto.key: Prepared key') : false;
 
-                var _p = _crypto.uid();
+				var _p = _crypto.uid();
 				return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(_p, _crypto.salt(_p), 1000, 256));
 			},
 
@@ -430,19 +431,19 @@
 			 *
 			 * @returns {String}
 			 */
-            uid: function(){
-                var x = window.navigator.appName+
-                        window.navigator.appCodeName+
-                        window.navigator.product+
-                        window.navigator.productSub+
-                        window.navigator.appVersion+
-                        window.navigator.buildID+
-                        window.navigator.userAgent+
-                        window.navigator.language+
-                        window.navigator.platform+
-                        window.navigator.oscpu;
-                return x.replace(/\s/, '');
-            },
+			uid: function(){
+				var x = window.navigator.appName+
+					window.navigator.appCodeName+
+					window.navigator.product+
+					window.navigator.productSub+
+					window.navigator.appVersion+
+					window.navigator.buildID+
+					window.navigator.userAgent+
+					window.navigator.language+
+					window.navigator.platform+
+					window.navigator.oscpu;
+				return x.replace(/\s/, '');
+			},
 
 			/**
 			 * @function salt
@@ -453,16 +454,16 @@
 			 *
 			 * @returns {String}
 			 */
-            salt: function(str){
-                var slt = _crypto.iv(str);
-                var _h = []; _h[0] = sjcl.hash.sha256.hash(str);
-                var _r = []; _r = _h[0]; var _d;
-                for (i = 1; i < 3; i++){
-                    _h[i] = sjcl.hash.sha256.hash(_h[i - 1].concat(slt));
-                    _d = _r.concat(_h[i]);
-                }
-                return JSON.stringify(sjcl.codec.hex.fromBits(_d));
-            },
+			salt: function(str){
+				var slt = _crypto.iv(str);
+				_h = []; _h[0] = sjcl.hash.sha256.hash(str);
+				_r = []; _r = _h[0], _d;
+				for (i = 1; i < 3; i++){
+					_h[i] = sjcl.hash.sha256.hash(_h[i - 1].concat(slt));
+					_d = _r.concat(_h[i]);
+				}
+				return JSON.stringify(sjcl.codec.hex.fromBits(_d));
+			},
 
 			/**
 			 * @function iv
@@ -473,10 +474,10 @@
 			 *
 			 * @returns {String}
 			 */
-            iv: function(str){
-                return (str) ? encodeURI(str.replace(/-/gi, '').substring(16, Math.ceil(16 * str.length) % str.length)) : false;
-            }
-        };
+			iv: function(str){
+				return (str) ? encodeURI(str.replace(/-/gi, '').substring(16, Math.ceil(16 * str.length) % str.length)) : false;
+			}
+		};
 
 		/**
 		 * @method _libs
@@ -523,48 +524,6 @@
 					n = obj.length;
 				}
 				return n;
-			},
-
-            /**
-             * @function rdupes
-             * @scope private
-             * @abstract Removes duplicates from array
-             *
-             * @param {Array} obj Array/Object with duplicate values
-             *
-             * @returns {Array}
-             */
-            rdupes: function(obj){
-                var _r = [];
-                if (_libs.size(obj) > 0){
-                    $.each(obj, function(a, b){
-                        if ($.inArray(b, _r) === -1) _r.push(b);
-                    });
-                }
-                return _r;
-            },
-
-			/**
-			 * @function guid
-			 * @scope private
-			 * @abstract Creates a random GUID (RFC-4122) identifier
-			 *
-			 * @param {Object} o Global options
-			 *
-			 * @returns {String}
-			 */
-			guid: function(o){
-				var chars = '0123456789abcdef'.split('');
-				var uuid = [], rnd = Math.random, r;
-				uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
-				uuid[14] = '4';
-				for (var i = 0; i < 36; i++){
-					if (!uuid[i]){
-						r = 0 | rnd()*16;
-						uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r & 0xf];
-					}
-				}
-				return uuid.join('');
 			}
 		};
 
