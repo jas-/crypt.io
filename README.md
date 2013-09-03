@@ -29,6 +29,15 @@ the use of the SJCL (Stanford Javascript Crypto Libraries).
 * callback:    Executes a callback function on success saves
 * errCallback: Executes a callback function when any save was unsuccessful
 
+
+##Notes:
+I feel it is worth noting that while this plugin makes every
+attempt at providing a secure transparent method of saving &
+retieving encrypted data based on unique identifiers retrieved
+from the client browser, it is by no means a replacement for
+a user specifying their own passphrase. See the 'Extra security'
+example for this.
+
 ##Support:
 Found a bug? Want a feature added? General feedback or kudos? Please open
 an issue so I can address it. Thanks!
@@ -103,18 +112,9 @@ in-the-middle scenario it would be more secure to prompt the user
 for his/her passphrase. Here is an example using the 'preCallback' option.
 
 ```
+var pass = window.prompt("Please enter password...", "a custom password");
 $(window).secStore({
+  uuid: pass,
   aes: true,
-  preCallback: function(){
-    window.prompt("Please enter password...", "a custom password");
-  }
 });
 ```
-
-##Notes:
-I feel it is worth noting that while this plugin makes every
-attempt at providing a secure transparent method of saving &
-retieving encrypted data based on unique identifiers retrieved
-from the client browser, it is by no means a replacement for
-a user specifying their own passphrase. See the 'Extra security'
-example for this.
