@@ -109,12 +109,48 @@ While providing a transparent method of encryption for objects within
 the client prevents the need for user interaction, in terms of security
 in the event of a same-origin, dom rebinding attack coupled with a man-
 in-the-middle scenario it would be more secure to prompt the user
-for his/her passphrase. Here is an example using the 'preCallback' option.
+for his/her passphrase. Here is an example of user input for the passphrase.
 
 ```
 var pass = window.prompt("Please enter password...", "a custom password");
 $(window).secStore({
   uuid: pass,
   aes: true,
+});
+```
+
+###For the paranoid
+Here is a robust example of saving & retrieving data implementing a user
+defined password based on their input while also using key stretching
+techniques to further enhance the security of the key used as well as using
+a tempoary storage option such as sessionStorage for the current authenticated
+session. Of course wrapping this around a TLS/SSL connection is recommended.
+
+
+Saving data (please keep in mind that a static value for the salt is not recommended)
+```
+var pass = window.prompt("Enter password to protect saved data", "");
+$(window).secStore({
+  storage: 'session',
+  aes: true,
+  uuid: sjcl.misc.pbkdf2(pass, "salt", 1000, 256),
+  data: {key: "value"},
+  callback: function(results){
+    document.write("Results of encrypted save: <br/>"+results);
+    document.write("<br/>");
+  }
+});
+```
+
+Retrieving data
+var pw = window.prompt("Enter password to retrieve protected data", "");
+$(window).secStore({
+  storage: 'session',
+  aes: true,
+  uuid: sjcl.misc.pbkdf2(pw, "salt", 1000, 256),
+  callback: function(results){
+    document.write("Results of decrypted retrieval: <br/>"+JSON.stringify(results));
+    document.write("<br/>");
+  }
 });
 ```
