@@ -9,27 +9,28 @@
 		<script>
 			$(document).ready(function(){
 				$.getJSON('sample-data.json', function(data){
-					$('#default-aes').html('Retrieved sample JSON data, saving...');
+					$('#default-aes-save').html('Retrieved sample JSON data, saving...');
 					$(window).secStore({
 						data: data,
 						aes: true,
 						callback: function(results){
-							$('#default-aes').append(results+'</p>');
+							$('#default-aes-save').append(results+'</p>');
 						}
 					});
 				});
 
-				$('#default-aes').append('<p>Retrieving previously saved data...');
+				$('#default-aes-retrieve').append('<p>Retrieving previously saved data...');
 				$(window).secStore({
 					aes: true,
 					callback: function(results){
-						$('#default-aes').append(results+'</p>');
+						$('#default-aes-retrieve').append('<pre>'+JSON.stringify(results)+'</pre></p>');
 					}
 				});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="default-aes"></div>
+		<div id="default-aes-save"></div>
+		<div id="default-aes-retrieve"></div>
 	</body>
 </html>
