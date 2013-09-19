@@ -15,17 +15,18 @@
 					$(window).secStore({
 						data: data,
 						aes: true,
-						uuid: sjcl.misc.pbkdf2(pass, "salt", 1000, 256),
+						uuid: sjcl.misc.pbkdf2(pw, "salt", 1000, 256),
 						callback: function(results){
 							$('#paranoid').append(results+'</p>');
 						}
 					});
 				});
 
+				var pw = window.prompt("Enter password to retrieve data (should be the same as previously entered)", "");
 				$('#paranoid').append('<p>Retrieving previously saved data...');
 				$(window).secStore({
 					aes: true,
-					uuid: sjcl.misc.pbkdf2(pass, "salt", 1000, 256),
+					uuid: sjcl.misc.pbkdf2(pw, "salt", 1000, 256),
 					callback: function(results){
 						$('#paranoid').append(results+'</p>');
 					}
