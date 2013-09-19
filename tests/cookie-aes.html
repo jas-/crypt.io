@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>secStore cookies w/ AES tests</title>
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="../secStore.js"></script>
+		<script src="../3rd-party/sjcl/sjcl.js"></script>
+		<script>
+			$(document).ready(function(){
+				$.getJSON('sample-data.json', function(data){
+					$('#cookies-aes').html('Retrieved sample JSON data, saving...');
+					$(window).secStore({
+						storage: 'cookie',
+						data: data,
+						aes: true,
+						callback: function(results){
+							$('#cookies-aes').append(results+'</p>');
+						}
+					});
+				});
+
+				$('#cookies-aes').append('<p>Retrieving previously saved data...');
+				$(window).secStore({
+					callback: function(results){
+						$('#cookies-aes').append(results+'</p>');
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="cookies-aes"></div>
+	</body>
+</html>

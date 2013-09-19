@@ -1,0 +1,171 @@
+{
+    "whois-resources": {
+        "service": "lookup",
+        "xsi:noNamespaceSchemaLocation": "http://apps.db.ripe.net/whois/xsd/whois-resources.xsd",
+        "link": {
+            "xlink:type": "locator",
+            "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/inetnum/64.233.160.132"
+        },
+        "objects": {
+            "object": {
+                "type": "inetnum",
+                "link": {
+                    "xlink:type": "locator",
+                    "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/inetnum/0.0.0.0 - 255.255.255.255"
+                },
+                "source": {
+                    "id": "ripe"
+                },
+                "primary-key": {
+                    "attribute": {
+                        "name": "inetnum",
+                        "value": "0.0.0.0 - 255.255.255.255"
+                    }
+                },
+                "attributes": {
+                    "attribute": [
+                        {
+                            "name": "inetnum",
+                            "value": "0.0.0.0 - 255.255.255.255"
+                        },
+                        {
+                            "name": "netname",
+                            "value": "IANA-BLK"
+                        },
+                        {
+                            "name": "descr",
+                            "value": "The whole IPv4 address space"
+                        },
+                        {
+                            "name": "country",
+                            "value": "EU",
+                            "comment": "Country field is actually all countries in the world and not just EU countries"
+                        },
+                        {
+                            "name": "org",
+                            "value": "ORG-IANA1-RIPE",
+                            "referenced-type": "organisation",
+                            "link": {
+                                "xlink:type": "locator",
+                                "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/organisation/ORG-IANA1-RIPE"
+                            }
+                        },
+                        {
+                            "name": "admin-c",
+                            "value": "IANA1-RIPE",
+                            "referenced-type": "person-role",
+                            "link": {
+                                "xlink:type": "locator",
+                                "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/person-role/IANA1-RIPE"
+                            }
+                        },
+                        {
+                            "name": "tech-c",
+                            "value": "IANA1-RIPE",
+                            "referenced-type": "person-role",
+                            "link": {
+                                "xlink:type": "locator",
+                                "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/person-role/IANA1-RIPE"
+                            }
+                        },
+                        {
+                            "name": "status",
+                            "value": "ALLOCATED UNSPECIFIED"
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "This object represents all IPv4 addresses."
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "If you see this object as a result of a single IP query, it"
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "means that the IP address you are querying is not managed by"
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "the RIPE NCC but by one of the other five RIRs. It might"
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "also be an address that has been reserved by the IETF as part"
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "of a protocol or test range."
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "You can find the whois server to query, or the"
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "IANA registry to query on this web page:"
+                        },
+                        {
+                            "name": "remarks",
+                            "value": "http://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xml"
+                        },
+                        {
+                            "name": "mnt-by",
+                            "value": "RIPE-NCC-HM-MNT",
+                            "referenced-type": "mntner",
+                            "link": {
+                                "xlink:type": "locator",
+                                "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/mntner/RIPE-NCC-HM-MNT"
+                            }
+                        },
+                        {
+                            "name": "mnt-lower",
+                            "value": "RIPE-NCC-HM-MNT",
+                            "referenced-type": "mntner",
+                            "link": {
+                                "xlink:type": "locator",
+                                "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/mntner/RIPE-NCC-HM-MNT"
+                            }
+                        },
+                        {
+                            "name": "mnt-routes",
+                            "value": "RIPE-NCC-RPSL-MNT",
+                            "referenced-type": "mntner",
+                            "link": {
+                                "xlink:type": "locator",
+                                "xlink:href": "http://apps.db.ripe.net/whois/lookup/ripe/mntner/RIPE-NCC-RPSL-MNT"
+                            }
+                        },
+                        {
+                            "name": "changed",
+                            "value": "bitbucket@ripe.net 20010529"
+                        },
+                        {
+                            "name": "changed",
+                            "value": "bitbucket@ripe.net 20020625"
+                        },
+                        {
+                            "name": "changed",
+                            "value": "hostmaster@ripe.net 20031014"
+                        },
+                        {
+                            "name": "changed",
+                            "value": "bitbucket@ripe.net 20040422"
+                        },
+                        {
+                            "name": "changed",
+                            "value": "bitbucket@ripe.net 20040504"
+                        },
+                        {
+                            "name": "changed",
+                            "value": "hostmaster@ripe.net 20120208"
+                        },
+                        {
+                            "name": "source",
+                            "value": "RIPE"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
