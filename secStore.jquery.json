@@ -7,7 +7,7 @@
     "localStorage",
     "sessionStorage",
     "cookies",
-    "AES encryption"
+    "AES-encryption"
   ],
   "version": "0.1.2",
   "author": {
