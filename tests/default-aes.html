@@ -19,7 +19,7 @@
 					});
 				});
 
-				$('#default-aes-retrieve').append('<p>Retrieving previously saved data...');
+				$('#default-aes-retrieve').html('<p>Retrieving previously saved data...');
 				$(window).secStore({
 					aes: true,
 					callback: function(results){
