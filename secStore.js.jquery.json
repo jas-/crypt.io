@@ -1,8 +1,7 @@
 {
   "name": "secStore.js",
   "title": "secStore.js",
-  "description": "jQuery plugin for HTML5 localStorage, sessionStorage, 
-cookies with optional transparent AES encryption support",
+  "description": "jQuery plugin for HTML5 localStorage, sessionStorage, cookies with optional transparent AES encryption support",
   "keywords": [
     "HTML5",
     "localStorage",
@@ -14,4 +13,18 @@ cookies with optional transparent AES encryption support",
   "author": {
     "name": "Jason Gerfen",
     "url": "https://github.com/jas-"
+  },
+  "licenses": [
+    {
+      "type": "GPL",
+      "url": "http://www.gnu.org/licenses/gpl.txt"
+    }
+  ],
+  "bugs": "https://github.com/jas-/secStore.js/issues",
+  "homepage": "https://github.com/jas-/secStore.js",
+  "download": "https://github.com/jas-/secStore.js/archive/master.zip",
+  "dependencies": {
+    "jquery": ">=2.x",
+    "sjcl": ">=0.8"
   }
+}
