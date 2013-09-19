@@ -20,7 +20,7 @@
 				$('#default-retrieve').html('<p>Retrieving previously saved data...');
 				$(window).secStore({
 					callback: function(results){
-						$('#default-retrieve').append(results+'</p>');
+						$('#default-retrieve').append('<pre>'+JSON.stringify(results)+'</pre></p>');
 					}
 				});
 			});

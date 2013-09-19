@@ -20,8 +20,9 @@
 
 				$('#session').append('<p>Retrieving previously saved data...');
 				$(window).secStore({
+					storage: 'session',
 					callback: function(results){
-						$('#session').append(results+'</p>');
+						$('#session').append('<pre>'+JSON.stringify(results)+'</pre></p>');
 					}
 				});
 			});

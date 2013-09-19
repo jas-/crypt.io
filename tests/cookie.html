@@ -22,7 +22,7 @@
 				$(window).secStore({
 					storage: 'cookie',
 					callback: function(results){
-						$('#cookies-retrieve').append(results+'</p>');
+						$('#cookies-retrieve').append('<pre>'+JSON.stringify(results)+'</pre></p>');
 					}
 				});
 			});

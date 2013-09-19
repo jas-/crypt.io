@@ -28,7 +28,7 @@
 					aes: true,
 					uuid: sjcl.misc.pbkdf2(pw, "salt", 1000, 256),
 					callback: function(results){
-						$('#paranoid').append(results+'</p>');
+						$('#paranoid').append('<pre>'+JSON.stringify(results)+'</pre></p>');
 					}
 				});
 			});

@@ -22,7 +22,7 @@
 				$(window).secStore({
 					callback: function(results){
 						$('#callback-retrieve').append('executing callback (done)');
-						$('#callback-retrieve').append(results+'</p>');
+						$('#callback-retrieve').append('<pre>'+JSON.stringify(results)+'</pre></p>');
 					}
 				});
 			});

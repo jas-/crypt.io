@@ -23,8 +23,9 @@
 				$('#session-aes').append('<p>Retrieving previously saved data...');
 				$(window).secStore({
 					aes: true,
+					storage: 'session',
 					callback: function(results){
-						$('#session-aes').append(results+'</p>');
+						$('#session-aes').append('<pre>'+JSON.stringify(results)+'</pre></p>');
 					}
 				});
 			});
