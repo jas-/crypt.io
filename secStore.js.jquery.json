@@ -1,5 +1,5 @@
 {
-  "name": "secStore",
+  "name": "secStore.js",
   "title": "secStore.js",
   "description": "jQuery plugin for HTML5 localStorage, sessionStorage, cookies with optional transparent AES encryption support",
   "keywords": [
