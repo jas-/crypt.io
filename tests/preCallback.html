@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>secStore preCallback tests</title>
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="../secStore.js"></script>
+		<script>
+			$(document).ready(function(){
+				$.getJSON('sample-data.json', function(data){
+					$('#preCallback-save').html('<p>Retrieved sample JSON data, saving...');
+					$(window).secStore({
+						data: data,
+						callback: function(results){
+							$('#preCallback-save').append(results+'</p>');
+						},
+						preCallback: function(err){
+							$('#preCallback-save').append('<span style="color: red">This occurs prior to save/retrieve</span></p>');
+						}
+					});
+				});
+
+				$('#preCallback-retrieve').html('<p>Retrieving previously saved data...');
+				$(window).secStore({
+					callback: function(results){
+						$('#preCallback-retrieve').append(results+'</p>');
+					},
+					preCallback: function(err){
+						$('#preCallback-save').append('<span style="color: red">This occurs prior to save/retrieve</span></p>');
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="preCallback-save"></div>
+		<div id="preCallback-retrieve"></div>
+	</body>
+</html>

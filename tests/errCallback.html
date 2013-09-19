@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>secStore errCallback tests</title>
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="../secStore.js"></script>
+		<script>
+			$(document).ready(function(){
+				$.getJSON('sample-data.json', function(data){
+					$('#errCallback-save').html('<p>Retrieved sample JSON data, saving...');
+					$(window).secStore({
+						data: data,
+						callback: function(results){
+							$('#errCallback-save').append(results+'</p>');
+						},
+						errCallback: function(err){
+							$('#errCallback-save').append('<span style="color: red">This should not be reached</span></p>');
+						}
+					});
+				});
+
+				$('#errCallback-retrieve').html('<p>Retrieving previously saved data...');
+				$(window).secStore({
+					callback: function(results){
+						$('#errCallback-retrieve').append(results+'</p>');
+					},
+					errCallback: function(err){
+						$('#errCallback-save').append('<span style="color: red">This should not be reached</span></p>');
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="errCallback-save"></div>
+		<div id="errCallback-retrieve"></div>
+	</body>
+</html>

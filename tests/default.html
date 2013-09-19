@@ -8,25 +8,26 @@
 		<script>
 			$(document).ready(function(){
 				$.getJSON('sample-data.json', function(data){
-					$('#default').html('<p>Retrieved sample JSON data, saving...');
+					$('#default-save').html('<p>Retrieved sample JSON data, saving...');
 					$(window).secStore({
 						data: data,
 						callback: function(results){
-							$('#default').append(results+'</p>');
+							$('#default-save').append(results+'</p>');
 						}
 					});
 				});
 
-				$('#default').append('<p>Retrieving previously saved data...');
+				$('#default-retrieve').html('<p>Retrieving previously saved data...');
 				$(window).secStore({
 					callback: function(results){
-						$('#default').append(results+'</p>');
+						$('#default-retrieve').append(results+'</p>');
 					}
 				});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="default"></div>
+		<div id="default-save"></div>
+		<div id="default-retrieve"></div>
 	</body>
 </html>

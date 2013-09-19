@@ -5,31 +5,31 @@
     <title>secStore callback tests</title>
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="../secStore.js"></script>
-		<script src="../3rd-party/sjcl/sjcl.js"></script>
 		<script>
 			$(document).ready(function(){
 				$.getJSON('sample-data.json', function(data){
-					$('#callback').html('Retrieved sample JSON data, saving...');
+					$('#callback-save').html('Retrieved sample JSON data, saving...');
 					$(window).secStore({
 						data: data,
 						callback: function(results){
-							$('#callback').append('executing callback (done)');
-							$('#callback').append(results+'</p>');
+							$('#callback-save').append('executing callback (done)');
+							$('#callback-save').append(results+'</p>');
 						}
 					});
 				});
 
-				$('#callback').append('<p>Retrieving previously saved data...');
+				$('#callback-retrieve').html('<p>Retrieving previously saved data...');
 				$(window).secStore({
 					callback: function(results){
-						$('#callback').append('executing callback (done)');
-						$('#callback').append(results+'</p>');
+						$('#callback-retrieve').append('executing callback (done)');
+						$('#callback-retrieve').append(results+'</p>');
 					}
 				});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="callback"></div>
+		<div id="callback-save"></div>
+		<div id="callback-retrieve"></div>
 	</body>
 </html>
