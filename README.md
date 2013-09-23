@@ -48,7 +48,7 @@ Here are a few examples of use to get you started.
 ###Default use
 Saving data...
 
-```
+```javascript
 $(window).secStore({
   appID: 'stuff',
   data: {key: 'value'}
@@ -57,7 +57,7 @@ $(window).secStore({
 
 Retrieving data...
 
-```
+```javascript
 $(window).secStore({
   appID: 'stuff',
   callback: function(obj){
@@ -70,7 +70,7 @@ $(window).secStore({
 Need to see some details of what is transpiring? This will not be available
 if you are using the minified version.
 
-```
+```javascript
 $(window).secStore({
   debug: true
 });
@@ -79,7 +79,7 @@ $(window).secStore({
 ###Storage option
 Want to use a different storage engine?
 
-```
+```javascript
 $(window).secStore({
   storage: 'session'
 });
@@ -87,7 +87,7 @@ $(window).secStore({
 
 Or some depreciated cookies?
 
-```
+```javascript
 $(window).secStore({
   storage: 'cookies'
 });
@@ -97,7 +97,7 @@ $(window).secStore({
 When you need to protect a bit of data in the event of browser flaw
 that leads to bypassing same-origin restrictions.
 
-```
+```javascript
 $(window).secStore({
   aes: true,
   data: {key: 'value'}
@@ -111,7 +111,7 @@ in the event of a same-origin, dom rebinding attack coupled with a man-
 in-the-middle scenario it would be more secure to prompt the user
 for his/her passphrase. Here is an example of user input for the passphrase.
 
-```
+```javascript
 var pass = window.prompt("Please enter password...", "a custom password");
 $(window).secStore({
   uuid: pass,
@@ -128,7 +128,8 @@ session. Of course wrapping this around a TLS/SSL connection is recommended.
 
 
 Saving data (please keep in mind that a static value for the salt is not recommended)
-```
+
+```javascript
 var pass = window.prompt("Enter password to protect saved data", "");
 $(window).secStore({
   storage: 'session',
@@ -143,6 +144,8 @@ $(window).secStore({
 ```
 
 Retrieving data
+
+```javascript
 var pw = window.prompt("Enter password to retrieve protected data", "");
 $(window).secStore({
   storage: 'session',
