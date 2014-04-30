@@ -376,7 +376,7 @@
 				 */
 				save: function(o, k, v){
 					(o.debug) ? _log.debug(o.appID, '_session.save: '+k+' => '+v) : false;
-					return localStorage.setItem(k, v);
+					return sessionStorage.setItem(k, v);
 				},
 
 				/**
