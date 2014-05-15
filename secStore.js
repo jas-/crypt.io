@@ -63,6 +63,19 @@
 				var opts = _setup.merge(o, defaults);
 
 				return _setup.init(opts);
+			},
+
+			/**
+			 * @function empty
+			 * @scope public
+			 * @abstract
+			 */
+			empty: function(o){
+
+				/* Merge user supplied options with defaults */
+				var opts = _setup.merge(o, defaults);
+
+				return _setup.empty(opts);
 			}
 		};
 
@@ -108,7 +121,19 @@
 			 */
 			merge: function(o, d){
 				return $.extend({}, d, o);
-			}
+			},
+
+			/**
+			 * @function empty
+			 * @scope private
+			 * @abstract Perform preliminary option/default object merge
+			 *
+			 * @param {Object} o Plug-in option object
+			 * @returns {Boolean}
+			 */
+			empty: function(o){
+				return _storage.empty(o, o.appID);
+			},
 		};
 
 		/**
@@ -229,6 +254,41 @@
 			},
 
 			/**
+			 * @function empty
+			 * @scope private
+			 * @abstract Interface for emptying available storage mechanisms
+			 *
+			 * @param {String} o Default options
+			 * @param {String} k Storage key to use for indexing of newly saved string/object
+			 *
+			 * @returns {Boolean}
+			 */
+			empty: function(o, k){
+				var x = false;
+
+				switch(o.storage) {
+					case 'cookie':
+						this._cookie.empty(o, k);
+						x = true;
+						break;
+					case 'local':
+						this._local.empty(o, k);
+						x = true;
+						break;
+					case 'session':
+						this._session.empty(o, k);
+						x = true;
+						break;
+					default:
+						this._local.empty(o, k);
+						x = true;
+						break;
+				}
+
+				return x;
+			},
+
+			/**
 			 * @function fromJSON
 			 * @scope private
 			 * @abstract Convert to JSON object to string
@@ -313,6 +373,21 @@
 				 */
 				domain:	function(){
 					return location.hostname;
+				},
+
+				/**
+				 * @function empty
+				 * @scope private
+				 * @abstract Removes cookie by id
+				 *
+				 * @returns {Boolean}
+				 */
+				empty:	function(o, k){
+					var d = new Date();
+					d.setTime(d.getTime() - (30 * 24 * 60 * 60 * 1000));
+					document.cookie = k+'=null;expires='+d.toGMTString()+';path=/;domain='+this.domain();
+					(o.debug) ? _log.debug(o.appID, '_cookies.empty: '+k) : false;
+					return true;
 				}
 			},
 
@@ -353,6 +428,22 @@
 					var x = localStorage.getItem(k);
 					(o.debug) ? _log.debug(o.appID, '_local.retrieve: '+k+' => '+x) : false;
 					return (x) ? x : false;
+				},
+
+				/**
+				 * @function empty
+				 * @scope private
+				 * @abstract Removes localStorage item
+				 *
+				 * @param {Object} o Application defaults
+				 * @param {String} k localStorage key
+				 *
+				 * @returns {Boolean}
+				 */
+				empty: function(o, k){
+					var x = localStorage.removeItem(k);
+					(o.debug) ? _log.debug(o.appID, '_local.empty: '+k) : false;
+					return (x) ? x : false;
 				}
 			},
 
@@ -392,6 +483,22 @@
 				retrieve: function(o, k){
 					var x = sessionStorage.getItem(k);
 					(o.debug) ? _log.debug(o.appID, '_session.retrieve: '+k+' => '+x) : false;
+					return (x) ? x : false;
+				},
+
+				/**
+				 * @function empty
+				 * @scope private
+				 * @abstract Removes sessionStorage item by id
+				 *
+				 * @param {Object} o Application defaults
+				 * @param {String} k sessionStorage key
+				 *
+				 * @returns {Boolean}
+				 */
+				empty: function(o, k){
+					var x = sessionStorage.removeItem(k);
+					(o.debug) ? _log.debug(o.appID, '_session.empty: '+k) : false;
 					return (x) ? x : false;
 				}
 			}
