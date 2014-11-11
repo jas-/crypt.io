@@ -8,425 +8,341 @@
  */
 (function (window, undefined) {
 
-    'use strict';
+  'use strict';
+
+  /**
+   * @function secStore
+   * @abstract
+   * @param obj {Object} User defined options
+   * @param cb {Function} User defined function
+   */
+  var secStore = secStore || function (obj, cb) {
 
     /**
-     * @function secStore
-     * @abstract
-     * @param obj {Object} User defined options
-     * @param cb {Function} User defined function
+     * @var {Object} defaults
+     * @abstract Default set of options for plug-in
+     *
+     * @param {Boolean} encrypt Optionally encrypt stored data
+     * @param {Object} data Data to be setd (JSON objects)
+     * @param {String} passphrase Passphrase to use (optional)
+     * @param {String} storage Storage mechanism (local, session or cookies)
      */
-    var secStore = secStore || function (obj, cb) {
+    var defaults = {
+      encrypt: false,
+      data: {},
+      key: 'secStore.js',
+      passphrase: '',
+      storage: 'local'
+    };
+
+    /**
+     * @method setup
+     * @scope private
+     * @abstract Initial setup routines
+     */
+    var setup = setup || {
 
       /**
-       * @var {Object} defaults
-       * @abstract Default set of options for plug-in
+       * @function set
+       * @scope private
+       * @abstract Initialization
        *
-       * @param {Boolean} aes Optionally encrypt local data
-       * @param {Object} data Data to be saved (JSON objects)
-       * @param {String} passphrase Passphrase to use (optional)
-       * @param {String} storage Storage mechanism (local, session or cookies)
+       * @param {Object} opts Plug-in option object
+       * @param {Function} cb Callback function
+       *
+       * @returns {Boolean}
        */
-      var defaults = {
-        aes: false,
-        data: {},
-        key: 'secStore.js',
-        passphrase: '',
-        storage: 'local'
-      };
+      init: function (opts, cb) {
+        opts.passphrase = (opts.encrypt && opts.passphrase) ?
+          opts.passphrase : (opts.encrypt && !opts.passphrase) ?
+          crypto.key(opts) : false;
+
+        var ret = (libs.size(storage.toJSON(opts.data)) > 0) ?
+          storage.set(opts, cb) : storage.set(opts, cb);
+
+        return ret;
+      }
+    };
+
+    /**
+     * @method storage
+     * @scope private
+     * @abstract Interface to handle storage options
+     */
+    var storage = storage || {
 
       /**
-       * @method setup
+       * @function quota
        * @scope private
-       * @abstract Initial setup routines
+       * @abstract Tests specified storage option for current amount of space available.
+       *  - Cookies: 4K
+       *  - localStorage: 5MB
+       *  - sessionStorage: 5MB
+       *  - default: 5MB
+       *
+       * @param {String} t Type of storage specified
+       *
+       * @returns {Boolean}
        */
-      var setup = setup || {
+      quota: function (storage) {
+        var max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4
+					,	cur = libs.total(storage)
+					,	total = max - cur;
 
-        /**
-         * @function save
-         * @scope private
-         * @abstract Initialization
-         *
-         * @param {Object} opts Plug-in option object
-         * @param {Function} cb Callback function
-         *
-         * @returns {Boolean}
-         */
-        init: function (opts, cb) {
-          opts = setup.merge(opts, defaults);
-
-          opts.passphrase = (opts.aes && opts.passphrase) ?
-            opts.passphrase : (opts.aes && !opts.passphrase) ?
-            crypto.key(opts) : false;
-
-          var ret = (libs.size(storage.toJSON(opts.data)) > 0) ?
-            storage.save(opts, opts.key, opts.data) : storage.retrieve(opts, opts.key);
-
-          return ret;
-        },
-
-        /**
-         * @function empty
-         * @scope private
-         * @abstract Perform preliminary option/default object merge
-         *
-         * @param {Object} opts Plug-in option object
-         * @param {Function} cb Callback function
-         *
-         * @returns {Boolean}
-         */
-        empty: function (opts, cb) {
-          return storage.empty(opts, opts.key);
+        if (total <= 0) {
+          return false;
         }
-      };
+
+        return true;
+      },
 
       /**
-       * @method storage
+       * @function set
        * @scope private
-       * @abstract Interface to handle storage options
+       * @abstract Interface for saving to available storage mechanisms
+       *
+       * @param {Object} opts Default options
+       * @param {Function} cb Callback function
+       *
+       * @returns {Boolean}
        */
-      var storage = storage || {
+      set: function (opts, cb) {
+        var ret = false;
 
-          /**
-           * @function quota
-           * @scope private
-           * @abstract Tests specified storage option for current amount of space available.
-           *  - Cookies: 4K
-           *  - localStorage: 5MB
-           *  - sessionStorage: 5MB
-           *  - default: 5MB
-           *
-           * @param {String} t Type of storage specified
-           *
-           * @returns {Boolean}
-           */
-          quota: function (storage) {
-            var len = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4,
-              total = len - unescape(encodeURIComponent(JSON.stringify(storage))).length;
-            if (total <= 0) {
-              return false;
-            }
-            return true;
-          },
+        if (!storage.quota(opts.storage))
+          cb('Browser storage quota has been exceeded.');
 
-          /**
-           * @function save
-           * @scope private
-           * @abstract Interface for saving to available storage mechanisms
-           *
-           * @param {Object} opts Default options
-           * @param {Function} cb Callback function
-           *
-           * @returns {Boolean}
-           */
-          save: function (opts, cb) {
-						ret = false;
+        var existing = storage.get(opts, cb);
 
-            if (!storage.quota(opts.storage))
-              cb('Browser storage quota has been exceeded.');
+        if (libs.size(opts) > 0) {
+          libs.merge(opts.data, existing);
+        }
 
-            var existing = storage.retrieve(opts);
+        opts.data = (opts.encrypt) ?
+          sjcl.encrypt(opts.passphrase, storage.fromJSON(opts.data)) :
+          storage.fromJSON(opts.data);
 
-            if (libs.size(opts) > 0) {
-              libs.merge(opts.data, existing);
-            }
+        switch (opts.storage) {
+	        case 'cookie':
+	          ret = this.cookie.set(opts);
+	          break;
+	        case 'local':
+	          ret = this.local.set(opts);
+	          break;
+	        case 'session':
+	          ret = this.session.set(opts);
+	          break;
+	        default:
+	          ret = this.local.set(opts);
+	          break;
+        }
+        if (!ret) {
+          cb('Error occured saving data');
+        } else {
+          cb(null, 'Successfully set data');
+        }
+      },
 
-            opts.data = (opts.aes) ?
-							sjcl.encrypt(opts.passphrase, storage.fromJSON(opts.data)) :
-							storage.fromJSON(opts.data);
+      /**
+       * @function get
+       * @scope private
+       * @abstract Interface for retrieving from available storage mechanisms
+       *
+       * @param {Object} opts Default options
+       *
+       * @returns {Object}
+       */
+      get: function (opts) {
+        var ret = {};
 
-            switch (opts.storage) {
-            case 'cookie':
-              ret = this.cookie.save(opts);
-              break;
-            case 'local':
-              ret = this.local.save(opts);
-              break;
-            case 'session':
-              ret = this.session.save(opts);
-              break;
-            default:
-              ret = this.local.save(opts);
-              break;
-            }
+        switch (opts.storage) {
+        case 'cookie':
+          ret = this.cookie.set(opts);
+          break;
+        case 'local':
+          ret = this.local.set(opts);
+          break;
+        case 'session':
+          ret = this.session.set(opts);
+          break;
+        default:
+          ret = this.local.set(opts);
+          break;
+        }
 
-            if (!ret) {
-							cb('Error occured saving data');
-						} else {
-							cb(null, 'Successfully saved data');
-						}
-          },
+        if (libs.size(storage.toJSON(ret)) > 0) {
+          ret = (opts.encrypt) ? sjcl.decrypt(opts.passphrase, ret) : ret;
 
-          /**
-           * @function retrieve
-           * @scope private
-           * @abstract Interface for retrieving from available storage mechanisms
-           *
-           * @param {Object} o Default options
-           * @param {String} k Storage key to use for indexing of newly saved string/object
-           *
-           * @returns {Object}
-           */
-          retrieve: function (opts) {
-            var ret = {};
+          cb(null, /string/.test(typeof (ret)) ? storage.toJSON(ret) : ret);
+        }
 
-            switch (opts.storage) {
-            case 'cookie':
-              ret = this.cookie.retrieve(opts);
-              break;
-            case 'local':
-              ret = this.local.retrieve(opts);
-              break;
-            case 'session':
-              ret = this.session.retrieve(opts);
-              break;
-            default:
-              ret = this.local.retrieve(opts);
-              break;
-            }
+				return false;
+      },
 
-            if (libs.size(storage.toJSON(ret)) > 0) {
-              ret = (opts.aes) ? sjcl.decrypt(opts.passphrase, ret) : ret;
+      /**
+       * @function fromJSON
+       * @scope private
+       * @abstract Convert to JSON object to string
+       *
+       * @param {Object|Array|String} obj Object, Array or String to convert to JSON object
+       *
+       * @returns {String}
+       */
+      fromJSON: function (obj) {
+        return (/object/.test(typeof (obj))) ? JSON.stringify(obj) : obj;
+      },
 
-              cb(null, /string/.test(typeof (ret)) ? storage.toJSON(ret) : ret);
-          }
+      /**
+       * @function toJSON
+       * @scope private
+       * @abstract Creates JSON object from formatted string
+       *
+       * @param {String} obj Object to convert to JSON object
+       *
+       * @returns {Object}
+       */
+      toJSON: function (obj) {
+        return (/string/.test(typeof (obj))) ? JSON.parse(obj) : obj;
+      },
 
-          cb('Nothing found in storage');
-        },
+      /**
+       * @method cookie
+       * @scope private
+       * @abstract Method for handling setting & retrieving of cookie objects
+       */
+      cookie: {
 
         /**
-         * @function empty
+         * @function set
          * @scope private
-         * @abstract Interface for emptying available storage mechanisms
+         * @abstract Handle setting of cookie objects
          *
-         * @param {String} o Default options
-         * @param {String} k Storage key to use for indexing of newly saved string/object
+         * @param {Object} o Application defaults
+         * @param {String} k Key to use for cookies
+         * @param {String|Object} v String or object to place in cookie
          *
          * @returns {Boolean}
          */
-        empty: function (opts) {
-					var ret = false;
+        set: function (o, k, v) {
+          var d = new Date();
+          d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+          document.cookie = k + '=' + v + ';expires=' + d.toGMTString() +
+            ';path=/;domain=' + this.domain();
+          return true;
+        },
 
-          switch (opts.storage) {
-          case 'cookie':
-            ret = this.cookie.empty(opts);
-            break;
-          case 'local':
-            ret = this.local.empty(opts);
-            break;
-          case 'session':
-            ret = this.session.empty(opts);
-            break;
-          default:
-            ret = this.local.empty(opts);
-            break;
+        /**
+         * @function get
+         * @scope private
+         * @abstract Handle retrieval of cookie objects
+         *
+         * @param {Object} o Application defaults
+         * @param {String} k cookie key
+         *
+         * @returns {String|False}
+         */
+        get: function (o, k) {
+          var i, x, y, z = document.cookie.split(";");
+          for (i = 0; i < z.length; i++) {
+            x = z[i].substr(0, z[i].indexOf('='));
+            y = z[i].substr(z[i].indexOf('=') + 1);
+            x = x.replace(/^\s+|\s+$/g, '');
+            if (x == k) {
+              return unescape(y);
+            }
           }
+          return false;
+        },
 
-           if (!ret) {
-						cb('Error occured removing data');
-					} else {
-						cb(null, 'Successfully removed data');
+        /**
+         * @function domain
+         * @scope private
+         * @abstract Provides current domain of client for cookie realm
+         *
+         * @returns {String}
+         */
+        domain: function () {
+          return location.hostname;
+        }
+      },
+
+      /**
+       * @method local
+       * @scope private
+       * @abstract Method for handling setting & retrieving of localStorage objects
+       */
+      local: {
+
+        /**
+         * @function set
+         * @scope private
+         * @abstract Handle setting & retrieving of localStorage objects
+         *
+         * @param {Object} opts Application defaults
+         *
+         * @returns {Boolean}
+         */
+        set: function (opts) {
+					try {
+	          window.localStorage.setItem(opts.key, opts.data);
+						return true;
+					} catch(e) {
+						return false;
 					}
         },
 
         /**
-         * @function fromJSON
+         * @function get
          * @scope private
-         * @abstract Convert to JSON object to string
+         * @abstract Handle retrieval of localStorage objects
          *
-         * @param {Object|Array|String} obj Object, Array or String to convert to JSON object
+         * @param {Object} o Application defaults
          *
-         * @returns {String}
+         * @returns {Object|String|Boolean}
          */
-        fromJSON: function (obj) {
-          return (/object/.test(typeof (obj))) ? JSON.stringify(obj) : obj;
-        },
-
-        /**
-         * @function toJSON
-         * @scope private
-         * @abstract Creates JSON object from formatted string
-         *
-         * @param {String} obj Object to convert to JSON object
-         *
-         * @returns {Object}
-         */
-        toJSON: function (obj) {
-          return (/string/.test(typeof (obj))) ? JSON.parse(obj) : obj;
-        },
-
-        /**
-         * @method cookie
-         * @scope private
-         * @abstract Method for handling setting & retrieving of cookie objects
-         */
-        cookie: {
-
-          /**
-           * @function save
-           * @scope private
-           * @abstract Handle setting of cookie objects
-           *
-           * @param {Object} o Application defaults
-           * @param {String} k Key to use for cookies
-           * @param {String|Object} v String or object to place in cookie
-           *
-           * @returns {Boolean}
-           */
-          save: function (o, k, v) {
-            var d = new Date();
-            d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
-            document.cookie = k + '=' + v + ';expires=' + d.toGMTString() +
-              ';path=/;domain=' + this.domain();
-            return true;
-          },
-
-          /**
-           * @function retrieve
-           * @scope private
-           * @abstract Handle retrieval of cookie objects
-           *
-           * @param {Object} o Application defaults
-           * @param {String} k cookie key
-           *
-           * @returns {String|False}
-           */
-          retrieve: function (o, k) {
-            var i, x, y, z = document.cookie.split(";");
-            for (i = 0; i < z.length; i++) {
-              x = z[i].substr(0, z[i].indexOf('='));
-              y = z[i].substr(z[i].indexOf('=') + 1);
-              x = x.replace(/^\s+|\s+$/g, '');
-              if (x == k) {
-                return unescape(y);
-              }
-            }
-            return false;
-          },
-
-          /**
-           * @function domain
-           * @scope private
-           * @abstract Provides current domain of client for cookie realm
-           *
-           * @returns {String}
-           */
-          domain: function () {
-            return location.hostname;
-          },
-
-          /**
-           * @function empty
-           * @scope private
-           * @abstract Removes cookie by id
-           *
-           * @returns {Boolean}
-           */
-          empty: function (o, k) {
-            var d = new Date();
-            d.setTime(d.getTime() - (30 * 24 * 60 * 60 * 1000));
-            document.cookie = k + '=null;expires=' + d.toGMTString() +
-              ';path=/;domain=' + this.domain();
-            return true;
-          }
-        },
-
-        /**
-         * @method local
-         * @scope private
-         * @abstract Method for handling setting & retrieving of localStorage objects
-         */
-        local: {
-
-          /**
-           * @function save
-           * @scope private
-           * @abstract Handle setting & retrieving of localStorage objects
-           *
-           * @param {Object} opts Application defaults
-           *
-           * @returns {Boolean}
-           */
-          save: function (opts) {
-            return localStorage.setItem(opts.key, opts.data);
-          },
-
-          /**
-           * @function retrieve
-           * @scope private
-           * @abstract Handle retrieval of localStorage objects
-           *
-           * @param {Object} o Application defaults
-           *
-           * @returns {Object|String|Boolean}
-           */
-          retrieve: function (opts) {
-            var ret = localStorage.getItem(opts.key);
-            return (ret) ? ret : false;
-          },
-
-          /**
-           * @function empty
-           * @scope private
-           * @abstract Removes localStorage item
-           *
-           * @param {Object} o Application defaults
-           *
-           * @returns {Boolean}
-           */
-          empty: function (opts) {
-            var ret = localStorage.removeItem(opts.key);
-            return (ret) ? ret : false;
-          }
-        },
-
-        /**
-         * @method session
-         * @scope private
-         * @abstract Method for handling setting & retrieving of sessionStorage objects
-         */
-        session: {
-
-          /**
-           * @function save
-           * @scope private
-           * @abstract Save session storage objects
-           *
-           * @param {Object} o Application defaults
-           *
-           * @returns {Boolean}
-           */
-          save: function (opts) {
-            return sessionStorage.setItem(opts.key, opts.data);
-          },
-
-          /**
-           * @function retrieve
-           * @scope private
-           * @abstract Retrieves sessionStorage objects
-           *
-           * @param {Object} o Application defaults
-           *
-           * @returns {Object|String|Boolean}
-           */
-          retrieve: function (o) {
-            var ret = sessionStorage.getItem(opts.key);
-            return (ret) ? ret : false;
-          },
-
-          /**
-           * @function empty
-           * @scope private
-           * @abstract Removes sessionStorage item by id
-           *
-           * @param {Object} o Application defaults
-           *
-           * @returns {Boolean}
-           */
-          empty: function (opts) {
-            return sessionStorage.removeItem(opts.key);
-          }
+        get: function (opts) {
+          return window.localStorage.getItem(opts.key);
         }
+      },
+
+      /**
+       * @method session
+       * @scope private
+       * @abstract Method for handling setting & retrieving of sessionStorage objects
+       */
+      session: {
+
+        /**
+         * @function set
+         * @scope private
+         * @abstract Set session storage objects
+         *
+         * @param {Object} o Application defaults
+         *
+         * @returns {Boolean}
+         */
+        set: function (opts) {
+					try {
+						window.sessionStorage.setItem(opts.key, opts.data);
+						return true;
+					} catch(e) {
+						return false;
+					}
+        },
+
+        /**
+         * @function get
+         * @scope private
+         * @abstract Retrieves sessionStorage objects
+         *
+         * @param {Object} o Application defaults
+         *
+         * @returns {Object|String|Boolean}
+         */
+        get: function (o) {
+          return window.sessionStorage.getItem(opts.key);
+        }
+			}
     };
 
     /**
@@ -483,8 +399,11 @@
        * @returns {String}
        */
       salt: function (str) {
-        var slt = crypto.iv(str),
-          hash = [];
+        var rec
+					,	ret
+					,	hash = []
+					, slt = crypto.iv(str);
+
         hash[0] = sjcl.hash.sha256.hash(str), rec = [], rec = hash[0], ret;
 
         for (var i = 1; i < 3; i++) {
@@ -515,6 +434,28 @@
      */
     var libs = libs || {
 
+			/**
+			 * @function total
+			 * @scope private
+			 * @abstract Returns size of specified storage
+			 *
+			 * @param {String} storage Storage mechanism
+			 *
+			 * @returns {Insteger}
+			 */
+			total: function(storage) {
+				var current = ''
+					,	engine = window.storage+'Storage';
+
+				for(var key in engine){
+					if(engine.hasOwnProperty(key)){
+						current += engine[key];
+					}
+        }
+
+        return current ? 3 + ((current.length * 16) / (8 * 1024)) : 0;
+			},
+
       /**
        * @function size
        * @scope private
@@ -525,27 +466,29 @@
        * @returns {Integer}
        */
       size: function (obj) {
-        var n = 0;
-        if (/object/.test(typeof (obj))) {
-          $.each(obj, function (k, v) {
-            if (obj.hasOwnProperty(k)) n++;
-          });
-        } else if (/array/.test(typeof (obj))) {
-          n = obj.length;
-        }
-        return n;
-      },
+				var n = 0;
+
+			  if (/object/.test(typeof(obj))) {
+			    for(var i in obj){
+			      if (obj.hasOwnProperty(obj[i])) n++;
+			    }
+			  } else if (/array/.test(typeof(obj))) {
+			    n = obj.length;
+			  }
+			  return n;
+			},
 
       /**
        * @function merge
        * @scope private
        * @abstract Perform preliminary option/default object merge
        *
-       * @param {Object} obj Plug-in option object
-       * @param {Object} defaults Default plug-in option object
+       * @param {Object} defaults Application defaults
+       * @param {Object} obj User supplied object
+       *
        * @returns {Object}
        */
-      merge: function (obj, defaults) {
+      merge: function (defaults, obj) {
         defaults = defaults || {};
 
         for (var item in defaults) {
