@@ -1,22 +1,21 @@
 /**
  * secStore.js - Encryption enabled browser storage
  *
- * Fork me @ https://www.github.com/jas-/secStore.js
+ * https://www.github.com/jas-/secStore.js
  *
  * Author: Jason Gerfen <jason.gerfen@gmail.com>
  * License: GPL (see LICENSE)
  */
-(function (window, undefined) {
+(function(window, undefined) {
 
   'use strict';
 
   /**
    * @function secStore
-   * @abstract
-   * @param obj {Object} User defined options
-   * @param cb {Function} User defined function
+   * @abstract Namespace for saving/retrieving encrypted HTML5 storage engine
+   * data
    */
-  var secStore = secStore || function (obj, cb) {
+  var secStore = secStore || function() {
 
     /**
      * @var {Object} defaults
@@ -48,19 +47,11 @@
        * @abstract Initialization
        *
        * @param {Object} opts Plug-in option object
-       * @param {Function} cb Callback function
-       *
-       * @returns {Boolean}
        */
-      init: function (opts, cb) {
+      init: function(opts) {
         opts.passphrase = (opts.encrypt && opts.passphrase) ?
           opts.passphrase : (opts.encrypt && !opts.passphrase) ?
           crypto.key(opts) : false;
-
-        var ret = (libs.size(storage.toJSON(opts.data)) > 0) ?
-          storage.set(opts, cb) : storage.set(opts, cb);
-
-        return ret;
       }
     };
 
@@ -84,10 +75,11 @@
        *
        * @returns {Boolean}
        */
-      quota: function (storage) {
-        var max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4
-					,	cur = libs.total(storage)
-					,	total = max - cur;
+      quota: function(storage) {
+        var max = /local|session/.test(storage) ? 1024 * 1025 * 5 :
+          1024 * 4,
+          cur = libs.total(storage),
+          total = max - cur;
 
         if (total <= 0) {
           return false;
@@ -106,35 +98,36 @@
        *
        * @returns {Boolean}
        */
-      set: function (opts, cb) {
+      set: function(opts, cb) {
         var ret = false;
 
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
-        var existing = storage.get(opts, cb);
+        //        var existing = storage.get(opts, cb);
 
-        if (libs.size(opts) > 0) {
-          libs.merge(opts.data, existing);
-        }
+        //        if (libs.size(existing) > 0) {
+        //          libs.merge(opts.data, existing);
+        //        }
+
 
         opts.data = (opts.encrypt) ?
           sjcl.encrypt(opts.passphrase, storage.fromJSON(opts.data)) :
           storage.fromJSON(opts.data);
 
         switch (opts.storage) {
-	        case 'cookie':
-	          ret = this.cookie.set(opts);
-	          break;
-	        case 'local':
-	          ret = this.local.set(opts);
-	          break;
-	        case 'session':
-	          ret = this.session.set(opts);
-	          break;
-	        default:
-	          ret = this.local.set(opts);
-	          break;
+          case 'cookie':
+            ret = this.cookie.set(opts);
+            break;
+          case 'local':
+            ret = this.local.set(opts);
+            break;
+          case 'session':
+            ret = this.session.set(opts);
+            break;
+          default:
+            ret = this.local.set(opts);
+            break;
         }
         if (!ret) {
           cb('Error occured saving data');
@@ -149,34 +142,36 @@
        * @abstract Interface for retrieving from available storage mechanisms
        *
        * @param {Object} opts Default options
+       * @param {Function} cb Callback function
        *
        * @returns {Object}
        */
-      get: function (opts) {
+      get: function(opts, cb) {
         var ret = {};
 
         switch (opts.storage) {
-        case 'cookie':
-          ret = this.cookie.set(opts);
-          break;
-        case 'local':
-          ret = this.local.set(opts);
-          break;
-        case 'session':
-          ret = this.session.set(opts);
-          break;
-        default:
-          ret = this.local.set(opts);
-          break;
+          case 'cookie':
+            ret = this.cookie.get(opts);
+            break;
+          case 'local':
+            ret = this.local.get(opts);
+            break;
+          case 'session':
+            ret = this.session.get(opts);
+            break;
+          default:
+            ret = this.local.get(opts);
+            break;
         }
 
-        if (libs.size(storage.toJSON(ret)) > 0) {
-          ret = (opts.encrypt) ? sjcl.decrypt(opts.passphrase, ret) : ret;
+        ret = sjcl.decrypt(opts.passphrase, ret);
+        ret = storage.toJSON(ret);
 
-          cb(null, /string/.test(typeof (ret)) ? storage.toJSON(ret) : ret);
+        if (/object/.test(ret)) {
+          cb(null, ret);
+        } else {
+          cb('Error occured retrieving storage data');
         }
-
-				return false;
       },
 
       /**
@@ -188,8 +183,8 @@
        *
        * @returns {String}
        */
-      fromJSON: function (obj) {
-        return (/object/.test(typeof (obj))) ? JSON.stringify(obj) : obj;
+      fromJSON: function(obj) {
+        return (/object/.test(typeof(obj))) ? JSON.stringify(obj) : obj;
       },
 
       /**
@@ -201,8 +196,8 @@
        *
        * @returns {Object}
        */
-      toJSON: function (obj) {
-        return (/string/.test(typeof (obj))) ? JSON.parse(obj) : obj;
+      toJSON: function(obj) {
+        return (/string/.test(typeof(obj))) ? JSON.parse(obj) : obj;
       },
 
       /**
@@ -217,16 +212,15 @@
          * @scope private
          * @abstract Handle setting of cookie objects
          *
-         * @param {Object} o Application defaults
-         * @param {String} k Key to use for cookies
-         * @param {String|Object} v String or object to place in cookie
+         * @param {String} key Key to use for cookies
+         * @param {String|Object} value String or object to place in cookie
          *
          * @returns {Boolean}
          */
-        set: function (o, k, v) {
+        set: function(key, value) {
           var d = new Date();
           d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
-          document.cookie = k + '=' + v + ';expires=' + d.toGMTString() +
+          document.cookie = key + '=' + value + ';expires=' + d.toGMTString() +
             ';path=/;domain=' + this.domain();
           return true;
         },
@@ -236,18 +230,17 @@
          * @scope private
          * @abstract Handle retrieval of cookie objects
          *
-         * @param {Object} o Application defaults
-         * @param {String} k cookie key
+         * @param {String} key cookie key
          *
          * @returns {String|False}
          */
-        get: function (o, k) {
+        get: function(key) {
           var i, x, y, z = document.cookie.split(";");
           for (i = 0; i < z.length; i++) {
             x = z[i].substr(0, z[i].indexOf('='));
             y = z[i].substr(z[i].indexOf('=') + 1);
             x = x.replace(/^\s+|\s+$/g, '');
-            if (x == k) {
+            if (x == key) {
               return unescape(y);
             }
           }
@@ -261,7 +254,7 @@
          *
          * @returns {String}
          */
-        domain: function () {
+        domain: function() {
           return location.hostname;
         }
       },
@@ -282,13 +275,13 @@
          *
          * @returns {Boolean}
          */
-        set: function (opts) {
-					try {
-	          window.localStorage.setItem(opts.key, opts.data);
-						return true;
-					} catch(e) {
-						return false;
-					}
+        set: function(opts) {
+          try {
+            window.localStorage.setItem(opts.key, opts.data);
+            return true;
+          } catch (e) {
+            return false;
+          }
         },
 
         /**
@@ -300,7 +293,7 @@
          *
          * @returns {Object|String|Boolean}
          */
-        get: function (opts) {
+        get: function(opts) {
           return window.localStorage.getItem(opts.key);
         }
       },
@@ -321,13 +314,13 @@
          *
          * @returns {Boolean}
          */
-        set: function (opts) {
-					try {
-						window.sessionStorage.setItem(opts.key, opts.data);
-						return true;
-					} catch(e) {
-						return false;
-					}
+        set: function(opts) {
+          try {
+            window.sessionStorage.setItem(opts.key, opts.data);
+            return true;
+          } catch (e) {
+            return false;
+          }
         },
 
         /**
@@ -335,14 +328,14 @@
          * @scope private
          * @abstract Retrieves sessionStorage objects
          *
-         * @param {Object} o Application defaults
+         * @param {Object} opts Application defaults
          *
          * @returns {Object|String|Boolean}
          */
-        get: function (o) {
+        get: function(opts) {
           return window.sessionStorage.getItem(opts.key);
         }
-			}
+      }
     };
 
     /**
@@ -357,15 +350,14 @@
        * @scope private
        * @abstract Prepares key for encryption/decryption routines
        *
-       * @param {Object} opts Global options object
-       *
        * @returns {String}
        */
-      key: function (opts) {
-        var pass = crypto.uid()
-					,	salt = crypto.salt(pass);
+      key: function() {
+        var pass = crypto.uid(),
+          salt = crypto.salt(pass);
 
-        return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(pass, salt, 10000, 256));
+        return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(pass, salt,
+          10000, 256));
       },
 
       /**
@@ -375,7 +367,7 @@
        *
        * @returns {String}
        */
-      uid: function () {
+      uid: function() {
         var ret = window.navigator.appName +
           window.navigator.appCodeName +
           window.navigator.product +
@@ -398,13 +390,12 @@
        *
        * @returns {String}
        */
-      salt: function (str) {
-        var rec
-					,	ret
-					,	hash = []
-					, slt = crypto.iv(str);
+      salt: function(str) {
+        var rec, ret, hash = [],
+          slt = crypto.iv(str);
 
-        hash[0] = sjcl.hash.sha256.hash(str), rec = [], rec = hash[0], ret;
+        hash[0] = sjcl.hash.sha256.hash(str), rec = [], rec = hash[0],
+          ret;
 
         for (var i = 1; i < 3; i++) {
           hash[i] = sjcl.hash.sha256.hash(hash[i - 1].concat(slt));
@@ -422,8 +413,9 @@
        *
        * @returns {String}
        */
-      iv: function (str) {
-        return encodeURI(str.replace(/-/gi, '').substring(16, Math.ceil(16 * str.length) % str.length));
+      iv: function(str) {
+        return encodeURI(str.replace(/-/gi, '').substring(16, Math.ceil(
+          16 * str.length) % str.length));
       }
     };
 
@@ -434,27 +426,27 @@
      */
     var libs = libs || {
 
-			/**
-			 * @function total
-			 * @scope private
-			 * @abstract Returns size of specified storage
-			 *
-			 * @param {String} storage Storage mechanism
-			 *
-			 * @returns {Insteger}
-			 */
-			total: function(storage) {
-				var current = ''
-					,	engine = window.storage+'Storage';
+      /**
+       * @function total
+       * @scope private
+       * @abstract Returns size of specified storage
+       *
+       * @param {String} engine Storage mechanism
+       *
+       * @returns {Insteger}
+       */
+      total: function(storage) {
+        var current = '',
+          engine = window.storage + 'Storage';
 
-				for(var key in engine){
-					if(engine.hasOwnProperty(key)){
-						current += engine[key];
-					}
+        for (var key in engine) {
+          if (engine.hasOwnProperty(key)) {
+            current += engine[key];
+          }
         }
 
         return current ? 3 + ((current.length * 16) / (8 * 1024)) : 0;
-			},
+      },
 
       /**
        * @function size
@@ -465,18 +457,18 @@
        *
        * @returns {Integer}
        */
-      size: function (obj) {
-				var n = 0;
+      size: function(obj) {
+        var n = 0;
 
-			  if (/object/.test(typeof(obj))) {
-			    for(var i in obj){
-			      if (obj.hasOwnProperty(obj[i])) n++;
-			    }
-			  } else if (/array/.test(typeof(obj))) {
-			    n = obj.length;
-			  }
-			  return n;
-			},
+        if (/object/.test(typeof(obj))) {
+          for (var i in obj) {
+            if (obj.hasOwnProperty(obj[i])) n++;
+          }
+        } else if (/array/.test(typeof(obj))) {
+          n = obj.length;
+        }
+        return n;
+      },
 
       /**
        * @function merge
@@ -488,12 +480,12 @@
        *
        * @returns {Object}
        */
-      merge: function (defaults, obj) {
+      merge: function(defaults, obj) {
         defaults = defaults || {};
 
         for (var item in defaults) {
           if (defaults.hasOwnProperty(item)) {
-            obj[item] = (/object/.test(typeof (defaults[item]))) ?
+            obj[item] = (/object/.test(typeof(defaults[item]))) ?
               this.merge(obj[item], defaults[item]) : defaults[item];
           }
           obj[item] = defaults[item];
@@ -504,17 +496,41 @@
     };
 
     /**
-     * @function init
+     * @function get
      * @scope public
-     * @abstract Handles options and begins communications
+     * @abstract Retrieves storage engine data
+     *
+     * @param {Object} obj User supplied options
+     * @param {Function} cb User supplied callback function
      */
-    var init = function () {
+    secStore.prototype.get = function(obj, cb) {
       cb = cb || obj;
 
       var opts = libs.merge(obj, defaults);
 
-      setup.init(opts, cb);
-    }();
+      setup.init(opts);
+
+      storage.get(opts, cb);
+    };
+
+    /**
+     * @function set
+     * @scope public
+     * @abstract Saves data to specified storage engine
+     *
+     * @param {Object} obj User supplied options
+     * @param {Function} cb User supplied callback function
+     */
+    secStore.prototype.set = function(obj, cb) {
+      cb = cb || obj;
+
+      var opts = libs.merge(obj, defaults);
+
+      setup.init(opts);
+
+      storage.set(opts, cb);
+    };
+
   };
 
   /* secStore.js, do work */

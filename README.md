@@ -1,6 +1,6 @@
 #secStore.js
 
-   Fork me @ https://www.github.com/jas-/secStore.js
+  Fork me @ https://www.github.com/jas-/secStore.js
 
 ##Description:
 secStore is simple wrapper to handle client storage mechanisms
@@ -12,7 +12,6 @@ will optionally provide a layer of security for said data with
 the use of the SJCL (Stanford Javascript Crypto Libraries).
 
 ##Requirements:
-* jQuery libraries (required - http://www.jquery.com)
 * SJCL libraries (optional - https://github.com/bitwiseshiftleft/sjcl)
 
 ##Features:
@@ -23,12 +22,11 @@ the use of the SJCL (Stanford Javascript Crypto Libraries).
 * Quota support (4K for cookies and 5MB for HTML5 mechanisms)
 
 ##Options:
-* appID:       Unique application identifier
-* storage:     HTML5 localStorage, sessionStorage and cookies supported
-* aes:         Use AES encryption for client storage objects
-* callback:    Executes a callback function on success saves
-* errCallback: Executes a callback function when any save was unsuccessful
-
+* _encrypt_: `{Boolean}` Provide transparent symmetric encryption of saved data
+* _data_: `{Mixed}` Object, string, array or booleans of data to be saved
+* _key_: `{String}` Unique identifier used as storage key
+* _passphrase_: `{String}` User supplied passphrase
+* _storage_: `{String}` Storage engine to use; local, session or cookies
 
 ##Notes:
 I feel it is worth noting that while this plugin makes every
@@ -49,59 +47,59 @@ Here are a few examples of use to get you started.
 Saving data...
 
 ```javascript
-$(window).secStore({
-  appID: 'stuff',
-  data: {key: 'value'}
+var storage = new secStore
+  , options = {
+    encrypt: true,
+    data: {
+      key: 'some data that is somewhat private'
+    }
+  };
+
+
+storage.set(options, function(error, results){
+  if err throw err;
+  console.log(results);
 });
 ```
 
 Retrieving data...
 
 ```javascript
-$(window).secStore({
-  appID: 'stuff',
-  callback: function(obj){
-    /* process obj */
-  }
-});
-```
+var storage = new secStore
+  , options = {
+    encrypt: true
+  };
 
-###Debugging example
-Need to see some details of what is transpiring? This will not be available
-if you are using the minified version.
 
-```javascript
-$(window).secStore({
-  debug: true
+storage.get(options, function(error, results){
+  if err throw err;
+  console.log(results);
 });
 ```
 
 ###Storage option
-Want to use a different storage engine?
+Want to use a different storage engine like the HTML5 sessionStorage feature?
 
 ```javascript
-$(window).secStore({
-  storage: 'session'
-});
+var options = {
+  encrypt: true,
+  storage: 'session',
+  data: {
+    key: 'some data that is somewhat private'
+  }
+};
 ```
 
-Or some depreciated cookies?
+Or some depreciated cookies? This is the least tested option
 
 ```javascript
-$(window).secStore({
-  storage: 'cookies'
-});
-```
-
-###Need some encryption?
-When you need to protect a bit of data in the event of browser flaw
-that leads to bypassing same-origin restrictions.
-
-```javascript
-$(window).secStore({
-  aes: true,
-  data: {key: 'value'}
-});
+var options = {
+  encrypt: true,
+  storage: 'cookies',
+  data: {
+    key: 'some data that is somewhat private'
+  }
+};
 ```
 
 ###Extra security
@@ -113,10 +111,14 @@ for his/her passphrase. Here is an example of user input for the passphrase.
 
 ```javascript
 var pass = window.prompt("Please enter password...", "a custom password");
-$(window).secStore({
-  uuid: pass,
-  aes: true,
-});
+
+var options = {
+  encrypt: true,
+  passphrase: pass,
+  data: {
+    key: 'some data that is somewhat private'
+  }
+};
 ```
 
 ###For the paranoid
@@ -131,29 +133,12 @@ Saving data (please keep in mind that a static value for the salt is not recomme
 
 ```javascript
 var pass = window.prompt("Enter password to protect saved data", "");
-$(window).secStore({
-  storage: 'session',
-  aes: true,
-  uuid: sjcl.misc.pbkdf2(pass, "salt", 1000, 256),
-  data: {key: "value"},
-  callback: function(results){
-    document.write("Results of encrypted save: <br/>"+results);
-    document.write("<br/>");
-  }
-});
-```
 
-Retrieving data
-
-```javascript
-var pw = window.prompt("Enter password to retrieve protected data", "");
-$(window).secStore({
-  storage: 'session',
-  aes: true,
-  uuid: sjcl.misc.pbkdf2(pw, "salt", 1000, 256),
-  callback: function(results){
-    document.write("Results of decrypted retrieval: <br/>"+JSON.stringify(results));
-    document.write("<br/>");
+var options = {
+  encrypt: true,
+  passphrase: sjcl.misc.pbkdf2(pass, "salt", 1000000, 256),
+  data: {
+    key: 'some data that is somewhat private'
   }
-});
+};
 ```
