@@ -104,13 +104,6 @@
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
-        //        var existing = storage.get(opts, cb);
-
-        //        if (libs.size(existing) > 0) {
-        //          libs.merge(opts.data, existing);
-        //        }
-
-
         opts.data = (opts.encrypt) ?
           sjcl.encrypt(opts.passphrase, storage.fromJSON(opts.data)) :
           storage.fromJSON(opts.data);
