@@ -49,9 +49,8 @@
        * @param {Object} opts Plug-in option object
        */
       init: function(opts) {
-        opts.passphrase = (opts.encrypt && opts.passphrase) ?
-          opts.passphrase : (opts.encrypt && !opts.passphrase) ?
-          crypto.key(opts) : false;
+        opts.passphrase = opts.encrypt ? (opts.passphrase || crypto.key(
+          opts)) : false;
       }
     };
 
@@ -81,11 +80,7 @@
           cur = libs.total(storage),
           total = max - cur;
 
-        if (total <= 0) {
-          return false;
-        }
-
-        return true;
+        return total > 0;
       },
 
       /**
@@ -108,20 +103,9 @@
           sjcl.encrypt(opts.passphrase, storage.fromJSON(opts.data)) :
           storage.fromJSON(opts.data);
 
-        switch (opts.storage) {
-          case 'cookie':
-            ret = this.cookie.set(opts);
-            break;
-          case 'local':
-            ret = this.local.set(opts);
-            break;
-          case 'session':
-            ret = this.session.set(opts);
-            break;
-          default:
-            ret = this.local.set(opts);
-            break;
-        }
+        ret = this[opts.storage] ? this[opts.storage].set(opts) : this.local
+          .set(opts);
+
         if (!ret) {
           cb('Error occured saving data');
         } else {
@@ -140,22 +124,8 @@
        * @returns {Object}
        */
       get: function(opts, cb) {
-        var ret = {};
-
-        switch (opts.storage) {
-          case 'cookie':
-            ret = this.cookie.get(opts);
-            break;
-          case 'local':
-            ret = this.local.get(opts);
-            break;
-          case 'session':
-            ret = this.session.get(opts);
-            break;
-          default:
-            ret = this.local.get(opts);
-            break;
-        }
+        var ret = this[opts.storage] ? this[opts.storage].get(opts) :
+          this.local.get(opts);
 
         ret = sjcl.decrypt(opts.passphrase, ret);
         ret = storage.toJSON(ret);
@@ -346,7 +316,7 @@
        * @returns {String}
        */
       key: function() {
-        var pass = crypto.uid(),
+        var pass = crypto.muid(),
           salt = crypto.salt(pass);
 
         return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(pass, salt,
@@ -354,13 +324,13 @@
       },
 
       /**
-       * @function uid
+       * @function muid
        * @scope private
        * @abstract Generates a machine identifier
        *
        * @returns {String}
        */
-      uid: function() {
+      muid: function() {
         var ret = window.navigator.appName +
           window.navigator.appCodeName +
           window.navigator.product +
