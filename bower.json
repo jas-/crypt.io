@@ -1,0 +1,29 @@
+{
+  "name": "secStore.js",
+  "main": "secStore.min.js",
+  "version": "0.1.2",
+  "homepage": "https://github.com/jas-/secStore.js",
+  "authors": [
+    "jas- <jason.gerfen@gmail.com>"
+  ],
+  "description": "Encrypted browser storage",
+  "keywords": [
+    "HTML5",
+    "sessionStorage",
+    "localStorage",
+    "cookies",
+    "AES-CCM"
+  ],
+  "license": "GPLv3",
+  "ignore": [
+    "**/.*",
+    "3rd-party",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "sjcl": "~1.0.0"
+  }
+}
