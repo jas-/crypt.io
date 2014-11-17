@@ -181,9 +181,9 @@
          * @returns {Boolean}
          */
         set: function(key, value) {
-          var d = new Date();
-          d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
-          document.cookie = key + '=' + value + ';expires=' + d.toGMTString() +
+          var date = new Date();
+          date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
+          document.cookie = key + '=' + value + ';expires=' + date.toGMTString() +
             ';path=/;domain=' + this.domain();
           return true;
         },
@@ -198,13 +198,13 @@
          * @returns {String|False}
          */
         get: function(key) {
-          var i, x, y, z = document.cookie.split(";");
-          for (i = 0; i < z.length; i++) {
-            x = z[i].substr(0, z[i].indexOf('='));
-            y = z[i].substr(z[i].indexOf('=') + 1);
-            x = x.replace(/^\s+|\s+$/g, '');
-            if (x == key) {
-              return unescape(y);
+          var i, index, value, content = document.cookie.split(";");
+          for (i = 0; i < content.length; i++) {
+            index = content[i].substr(0, content[i].indexOf('='));
+            value = content[i].substr(content[i].indexOf('=') + 1);
+            index = index.replace(/^\s+|\s+$/g, '');
+            if (index == key) {
+              return unescape(value);
             }
           }
           return false;
