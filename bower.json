@@ -9,6 +9,7 @@
   "description": "Encrypted browser storage",
   "keywords": [
     "HTML5",
+    "encryption",
     "sessionStorage",
     "localStorage",
     "cookies",
