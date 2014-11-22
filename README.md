@@ -11,6 +11,33 @@ you in transparent storage & retrieval of client data, but it
 will optionally provide a layer of security for said data with
 the use of the SJCL (Stanford Javascript Crypto Libraries).
 
+##Installation:
+Three methods are available for setup and use; using bower, cloning & manual
+
+###Bower
+To setup using bower
+
+```sh
+%> bower install secstore.js
+```
+
+###Clone
+To setup using git
+
+```sh
+%> git clone --recursive https://github.com/jas-/secStore.js.git
+```
+
+###Manual
+Copy the [secStore.min.js](https://github.com/jas-/secStore.js/blob/master/secStore.min.js)
+and the [sjcl](https://github.com/bitwiseshiftleft/sjcl) libraries to your web project
+and include them like so.
+
+```html
+<script src="/path/to/sjcl.js"></script>
+<script src="/path/to/secStore.min.js"></script>
+```
+
 ##Requirements:
 * SJCL libraries (optional - https://github.com/bitwiseshiftleft/sjcl)
 
@@ -27,14 +54,6 @@ the use of the SJCL (Stanford Javascript Crypto Libraries).
 * _key_: `{String}` Unique identifier used as storage key
 * _passphrase_: `{String}` User supplied passphrase
 * _storage_: `{String}` Storage engine to use; local, session or cookies
-
-##Notes:
-I feel it is worth noting that while this plugin makes every
-attempt at providing a secure transparent method of saving &
-retieving encrypted data based on unique identifiers retrieved
-from the client browser, it is by no means a replacement for
-a user specifying their own passphrase. See the 'Extra security'
-example for this.
 
 ##Support:
 Found a bug? Want a feature added? General feedback or kudos? Please open
@@ -142,3 +161,21 @@ var options = {
   }
 };
 ```
+
+##Warning:
+I feel it is worth noting that while this plugin makes every
+attempt at providing a secure transparent method of saving &
+retieving encrypted data based on unique identifiers retrieved
+from the client browser, it is by no means a replacement for
+a user specifying their own passphrase. See the 'Extra security'
+example for this.
+
+For the reasons behind this notice please research MITM ARP
+poisoning techniques coupled with use of the BeEF injection
+framework. This attack vector as well as browser plug-ins &
+JavaScript scriplets can expose the parameters used to create
+a unique transparent key used by the browser.
+
+While this technique is possible, it is typically a low threat
+vector due to the technologies & knowledge necessary to exploit.
+
