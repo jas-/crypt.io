@@ -9,7 +9,7 @@ within the browser.
 It is named secStore.js because not only will this plug-in assist
 you in transparent storage & retrieval of client data, but it
 will optionally provide a layer of security for said data with
-the use of the SJCL (Stanford Javascript Crypto Libraries).
+the use of the [SJCL (Stanford Javascript Crypto Libraries)](http://bitwiseshiftleft.github.io/sjcl/).
 
 ##Installation:
 Three methods are available for setup and use; using bower, cloning & manual
