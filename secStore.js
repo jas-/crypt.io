@@ -124,13 +124,15 @@
        * @returns {Object}
        */
       get: function(opts, cb) {
-        var ret = this[opts.storage] ? this[opts.storage].get(opts) :
+        var ret = false;
+
+        ret = this[opts.storage] ? this[opts.storage].get(opts) :
           this.local.get(opts);
 
         ret = sjcl.decrypt(opts.passphrase, ret);
         ret = storage.toJSON(ret);
 
-        if (/object/.test(ret)) {
+        if (ret) {
           cb(null, ret);
         } else {
           cb('Error occured retrieving storage data');
@@ -147,7 +149,13 @@
        * @returns {String}
        */
       fromJSON: function(obj) {
-        return (/object/.test(typeof(obj))) ? JSON.stringify(obj) : obj;
+        var ret;
+        try {
+          ret = JSON.stringify(obj);
+        } catch (e) {
+          ret = obj;
+        }
+        return ret;
       },
 
       /**
@@ -160,7 +168,13 @@
        * @returns {Object}
        */
       toJSON: function(obj) {
-        return (/string/.test(typeof(obj))) ? JSON.parse(obj) : obj;
+        var ret;
+        try {
+          ret = JSON.parse(obj);
+        } catch (e) {
+          ret = obj;
+        }
+        return ret;
       },
 
       /**
