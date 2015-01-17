@@ -75,8 +75,8 @@ var storage = new secStore
   };
 
 
-storage.set(options, function(error, results){
-  if err throw err;
+storage.set(options, function(err, results){
+  if (err) throw err;
   console.log(results);
 });
 ```
