@@ -90,8 +90,8 @@ var storage = new secStore
   };
 
 
-storage.get(options, function(error, results){
-  if err throw err;
+storage.get(options, function(err, results){
+  if (err) throw err;
   console.log(results);
 });
 ```
