@@ -25,6 +25,46 @@
 <p>Provides transparent symmetric encryption support for browser storage options.</p>
 
 <h2>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements:</h2>
+
+<ul>
+<li>SJCL libraries (optional - <a href="https://github.com/bitwiseshiftleft/sjcl">https://github.com/bitwiseshiftleft/sjcl</a>)</li>
+</ul>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features:</h2>
+
+<ul>
+<li>HTML5 localStorage support</li>
+<li>HTML5 sessionStorage support</li>
+<li>Cookie support</li>
+<li>AES encryption support</li>
+<li>Quota support (4K for cookies and 5MB for HTML5 mechanisms)</li>
+</ul>
+
+<h2>
+<a id="options" class="anchor" href="#options" aria-hidden="true"><span class="octicon octicon-link"></span></a>Options:</h2>
+
+<ul>
+<li>
+<em>encrypt</em>: <code>{Boolean}</code> Provide transparent symmetric encryption of saved data</li>
+<li>
+<em>data</em>: <code>{Mixed}</code> Object, string, array or booleans of data to be saved</li>
+<li>
+<em>key</em>: <code>{String}</code> Unique identifier used as storage key</li>
+<li>
+<em>passphrase</em>: <code>{String}</code> User supplied passphrase</li>
+<li>
+<em>storage</em>: <code>{String}</code> Storage engine to use; local, session or cookies</li>
+</ul>
+
+<h2>
+<a id="support" class="anchor" href="#support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support:</h2>
+
+<p>Found a bug? Want a feature added? General feedback or kudos? Please open
+an issue so I can address it. Thanks!</p>
+
+<h2>
 <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation:</h2>
 
 <p>Three methods are available for setup and use; using bower, cloning &amp; manual</p>
@@ -52,6 +92,125 @@ and include them like so.</p>
 
 <div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>/path/to/sjcl.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
 &lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>/path/to/secStore.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</pre></div>
+
+<h2>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span class="octicon octicon-link"></span></a>Examples:</h2>
+
+<p>Here are a few examples of use to get you started.</p>
+
+<h3>
+<a id="default-use" class="anchor" href="#default-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>Default use</h3>
+
+<p>Saving data...</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> storage <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">secStore</span>
+  , options <span class="pl-k">=</span> {
+    encrypt<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+    data<span class="pl-k">:</span> {
+      key<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>some data that is somewhat private<span class="pl-pds">'</span></span>
+    }
+  };
+
+
+storage.set(options, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">results</span>){
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+  <span class="pl-en">console</span><span class="pl-c1">.log</span>(results);
+});</pre></div>
+
+<p>Retrieving data...</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> storage <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">secStore</span>
+  , options <span class="pl-k">=</span> {
+    encrypt<span class="pl-k">:</span> <span class="pl-c1">true</span>
+  };
+
+
+storage.get(options, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">results</span>){
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+  <span class="pl-en">console</span><span class="pl-c1">.log</span>(results);
+});</pre></div>
+
+<h3>
+<a id="storage-option" class="anchor" href="#storage-option" aria-hidden="true"><span class="octicon octicon-link"></span></a>Storage option</h3>
+
+<p>Want to use a different storage engine like the HTML5 sessionStorage feature?</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> options <span class="pl-k">=</span> {
+  encrypt<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+  storage<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>,
+  data<span class="pl-k">:</span> {
+    key<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>some data that is somewhat private<span class="pl-pds">'</span></span>
+  }
+};</pre></div>
+
+<p>Or some depreciated cookies? This is the least tested option</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> options <span class="pl-k">=</span> {
+  encrypt<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+  storage<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>cookies<span class="pl-pds">'</span></span>,
+  data<span class="pl-k">:</span> {
+    key<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>some data that is somewhat private<span class="pl-pds">'</span></span>
+  }
+};</pre></div>
+
+<h3>
+<a id="extra-security" class="anchor" href="#extra-security" aria-hidden="true"><span class="octicon octicon-link"></span></a>Extra security</h3>
+
+<p>While providing a transparent method of encryption for objects within
+the client prevents the need for user interaction, in terms of security
+in the event of a same-origin, dom rebinding attack coupled with a man-
+in-the-middle scenario it would be more secure to prompt the user
+for his/her passphrase. Here is an example of user input for the passphrase.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> pass <span class="pl-k">=</span> <span class="pl-c1">window</span>.<span class="pl-c1">prompt</span>(<span class="pl-s"><span class="pl-pds">"</span>Please enter password...<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>a custom password<span class="pl-pds">"</span></span>);
+
+<span class="pl-k">var</span> options <span class="pl-k">=</span> {
+  encrypt<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+  passphrase<span class="pl-k">:</span> pass,
+  data<span class="pl-k">:</span> {
+    key<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>some data that is somewhat private<span class="pl-pds">'</span></span>
+  }
+};</pre></div>
+
+<h3>
+<a id="for-the-paranoid" class="anchor" href="#for-the-paranoid" aria-hidden="true"><span class="octicon octicon-link"></span></a>For the paranoid</h3>
+
+<p>Here is a robust example of saving &amp; retrieving data implementing a user
+defined password based on their input while also using key stretching
+techniques to further enhance the security of the key used as well as using
+a tempoary storage option such as sessionStorage for the current authenticated
+session. Of course wrapping this around a TLS/SSL connection is recommended.</p>
+
+<p>Saving data (please keep in mind that a static value for the salt is not recommended)</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> pass <span class="pl-k">=</span> <span class="pl-c1">window</span>.<span class="pl-c1">prompt</span>(<span class="pl-s"><span class="pl-pds">"</span>Enter password to protect saved data<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>);
+
+<span class="pl-k">var</span> options <span class="pl-k">=</span> {
+  encrypt<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+  passphrase<span class="pl-k">:</span> sjcl.misc.pbkdf2(pass, <span class="pl-s"><span class="pl-pds">"</span>salt<span class="pl-pds">"</span></span>, <span class="pl-c1">1000000</span>, <span class="pl-c1">256</span>),
+  data<span class="pl-k">:</span> {
+    key<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>some data that is somewhat private<span class="pl-pds">'</span></span>
+  }
+};</pre></div>
+
+<h2>
+<a id="warning" class="anchor" href="#warning" aria-hidden="true"><span class="octicon octicon-link"></span></a>Warning:</h2>
+
+<p>I feel it is worth noting that while this plugin makes every
+attempt at providing a secure transparent method of saving &amp;
+retieving encrypted data based on unique identifiers retrieved
+from the client browser, it is by no means a replacement for
+a user specifying their own passphrase. See the 'Extra security'
+example for this.</p>
+
+<p>For the reasons behind this notice please research MITM ARP
+poisoning techniques coupled with use of the BeEF injection
+framework. This attack vector as well as browser plug-ins &amp;
+JavaScript scriplets can expose the parameters used to create
+a unique transparent key used by the browser.</p>
+
+<p>While this technique is possible, it is typically a low threat
+vector due to the technologies &amp; knowledge necessary to exploit.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/jas-/secStore.js">Secstore.js</a> is maintained by <a href="https://github.com/jas-">jas-</a>.</span>
