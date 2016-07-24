@@ -23,17 +23,15 @@
      * @var {Object} defaults
      * @abstract Default set of options for plug-in
      *
-     * @param {Boolean} encrypt Optionally encrypt stored data
      * @param {Object} data Data to be setd (JSON objects)
      * @param {String} passphrase Passphrase to use (optional)
      * @param {String} storage Storage mechanism (local, session or cookies)
      */
     var defaults = {
-      encrypt: false,
-      data: {},
-      key: 'secStore.js',
-      passphrase: '',
-      storage: 'local'
+      data:         {},
+      key:          'secStore.js',
+      passphrase:   '',
+      storage:      'local'
     };
 
     /**
@@ -45,7 +43,6 @@
 
       /**
        * @function set
-       * @scope private
        * @abstract Initialization
        *
        * @param {Object} opts Plug-in option object
@@ -61,17 +58,45 @@
       }
     };
 
+
+    /**
+     * @method crypt
+     * @abstract Handles crypto operations
+     */
+    var crypt = crypt || {
+
+      /**
+       * @function init
+       * @abstract Determines crypto API to use (SJCL or W3C Crypto API)
+       *
+       */
+      init: function() {
+
+      },
+
+
+      /**
+       * @function genkey
+       * @abstract Derives internal key based on supplied key or transparently
+       *           aquired browser fingerprint
+       *
+       */
+      genkey: function() {
+
+      }
+    }
+
     /**
      * @method storage
-     * @scope private
      * @abstract Interface to handle storage options
      */
     var storage = storage || {
 
       /**
        * @function quota
-       * @scope private
-       * @abstract Tests specified storage option for current amount of space available.
+       * @abstract Tests specified storage option for current amount of space
+       *           available.
+       *
        *  - Cookies: 4K
        *  - localStorage: 5MB
        *  - sessionStorage: 5MB
@@ -92,7 +117,6 @@
 
       /**
        * @function set
-       * @scope private
        * @abstract Interface for saving to available storage mechanisms
        *
        * @param {Object} opts Default options
@@ -127,7 +151,6 @@
 
       /**
        * @function get
-       * @scope private
        * @abstract Interface for retrieving from available storage mechanisms
        *
        * @param {Object} opts Default options
@@ -158,10 +181,9 @@
 
       /**
        * @function fromJSON
-       * @scope private
        * @abstract Convert to JSON object to string
        *
-       * @param {Object|Array|String} obj Object, Array or String to convert to JSON object
+       * @param {Object|Array|String} obj Object, Array or String
        *
        * @returns {String}
        */
@@ -177,7 +199,6 @@
 
       /**
        * @function toJSON
-       * @scope private
        * @abstract Creates JSON object from formatted string
        *
        * @param {String} obj Object to convert to JSON object
@@ -196,14 +217,12 @@
 
       /**
        * @method cookie
-       * @scope private
        * @abstract Method for handling setting & retrieving of cookie objects
        */
       cookie: {
 
         /**
          * @function set
-         * @scope private
          * @abstract Handle setting of cookie objects
          *
          * @param {String} key Key to use for cookies
@@ -213,15 +232,17 @@
          */
         set: function(key, value) {
           var date = new Date();
+
           date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
-          document.cookie = key + '=' + value + ';expires=' + date.toGMTString() +
-            ';path=/;domain=' + this.domain();
+
+          document.cookie = key + '=' + value + ';expires=' +
+            date.toGMTString() + ';path=/;domain=' + this.domain();
+
           return true;
         },
 
         /**
          * @function get
-         * @scope private
          * @abstract Handle retrieval of cookie objects
          *
          * @param {String} key cookie key
@@ -230,6 +251,7 @@
          */
         get: function(key) {
           var i, index, value, content = document.cookie.split(";");
+
           for (i = 0; i < content.length; i++) {
             index = content[i].substr(0, content[i].indexOf('='));
             value = content[i].substr(content[i].indexOf('=') + 1);
@@ -243,7 +265,6 @@
 
         /**
          * @function domain
-         * @scope private
          * @abstract Provides current domain of client for cookie realm
          *
          * @returns {String}
@@ -255,14 +276,12 @@
 
       /**
        * @method local
-       * @scope private
        * @abstract Method for handling setting & retrieving of localStorage objects
        */
       local: {
 
         /**
          * @function set
-         * @scope private
          * @abstract Handle setting & retrieving of localStorage objects
          *
          * @param {Object} opts Application defaults
@@ -280,7 +299,6 @@
 
         /**
          * @function get
-         * @scope private
          * @abstract Handle retrieval of localStorage objects
          *
          * @param {Object} o Application defaults
@@ -294,7 +312,6 @@
 
       /**
        * @method session
-       * @scope private
        * @abstract Method for handling setting & retrieving of sessionStorage objects
        */
       session: {
@@ -319,7 +336,6 @@
 
         /**
          * @function get
-         * @scope private
          * @abstract Retrieves sessionStorage objects
          *
          * @param {Object} opts Application defaults
@@ -334,14 +350,12 @@
 
     /**
      * @method crypto
-     * @scope private
      * @abstract Interface to handle encryption option
      */
     var crypto = crypto || {
 
       /**
        * @function key
-       * @scope private
        * @abstract Prepares key for encryption/decryption routines
        *
        * @returns {String}
@@ -356,28 +370,21 @@
 
       /**
        * @function muid
-       * @scope private
        * @abstract Generates a machine identifier
        *
        * @returns {String}
        */
       muid: function() {
         var ret = window.navigator.appName +
-          window.navigator.appCodeName +
           window.navigator.product +
-          window.navigator.productSub +
-          window.navigator.appVersion +
-          window.navigator.buildID +
-          window.navigator.userAgent +
           window.navigator.language +
           window.navigator.platform +
           window.navigator.oscpu;
-        return ret.replace(/\s/, '');
+        return encodeURI(ret.replace(/\s/, '|'));
       },
 
       /**
        * @function salt
-       * @scope private
        * @abstract Creates salt from string & iv
        *
        * @param {String} str Machine identification used as salt
@@ -400,7 +407,6 @@
 
       /**
        * @function iv
-       * @scope private
        * @abstract Creates IV based on UID
        *
        * @param {String} str Supplied string
@@ -415,14 +421,12 @@
 
     /**
      * @method libs
-     * @scope private
      * @abstract Miscellaneous helper libraries
      */
     var libs = libs || {
 
       /**
        * @function total
-       * @scope private
        * @abstract Returns size of specified storage
        *
        * @param {String} engine Storage mechanism
@@ -444,7 +448,6 @@
 
       /**
        * @function size
-       * @scope private
        * @abstract Perform calculation on objects
        *
        * @param {Object|Array} obj The object/array to calculate
@@ -466,7 +469,6 @@
 
       /**
        * @function merge
-       * @scope private
        * @abstract Perform preliminary option/default object merge
        *
        * @param {Object} defaults Application defaults
@@ -491,7 +493,6 @@
 
     /**
      * @function get
-     * @scope public
      * @abstract Retrieves storage engine data
      *
      * @param {Object} obj User supplied options
@@ -509,7 +510,6 @@
 
     /**
      * @function set
-     * @scope public
      * @abstract Saves data to specified storage engine
      *
      * @param {Object} obj User supplied options
@@ -528,6 +528,6 @@
   };
 
   /* secStore.js, do work */
-  window.secStore = secStore;
+  window.secStore = new secStore;
 
 })(window);
