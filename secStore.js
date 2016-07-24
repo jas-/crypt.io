@@ -101,23 +101,28 @@
        * @returns {Boolean}
        */
       set: function(opts, cb) {
-        var ret = false;
-
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
-        opts.data = (opts.encrypt) ?
-          sjcl.encrypt(opts.passphrase, storage.fromJSON(opts.data)) :
-          storage.fromJSON(opts.data);
-
-        ret = this[opts.storage] ? this[opts.storage].set(opts) : this.local
-          .set(opts);
-
-        if (!ret) {
-          cb('Error occured saving data');
-        } else {
-          cb(null, 'Successfully set data');
+        if (opts.encrypt) {
+          try {
+            opts.data = sjcl.encrypt(opts.passphrase,
+                                     storage.fromJSON(opts.data));
+          } catch(err) {
+            cb('An error occured encrypting data');
+          }
         }
+
+        opts.data = storage.fromJSON(opts.data);
+
+        try {
+          this[opts.storage] ?
+            this[opts.storage].set(opts) : this.local.set(opts);
+        } catch(err) {
+          cb('An error occured saving data');
+        }
+
+        cb(null, 'Successfully set data');
       },
 
       /**
@@ -133,17 +138,22 @@
       get: function(opts, cb) {
         var ret = false;
 
-        ret = this[opts.storage] ? this[opts.storage].get(opts) :
-          this.local.get(opts);
+        try {
+          ret = this[opts.storage] ?
+            this[opts.storage].get(opts) : this.local.get(opts);
+        } catch(err) {
+          cb('An error retrieving saved data');
+        }
 
-        ret = sjcl.decrypt(opts.passphrase, ret);
+        try {
+          ret = sjcl.decrypt(opts.passphrase, ret);
+        } catch(err) {
+          cb('An error occured decrypting saved data');
+        }
+
         ret = storage.toJSON(ret);
 
-        if (ret) {
-          cb(null, ret);
-        } else {
-          cb('Error occured retrieving storage data');
-        }
+        cb(null, ret);
       },
 
       /**
