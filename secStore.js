@@ -6,6 +6,8 @@
  * Author: Jason Gerfen <jason.gerfen@gmail.com>
  * License: GPL (see LICENSE)
  */
+
+
 (function(window, undefined) {
 
   'use strict';
@@ -49,8 +51,13 @@
        * @param {Object} opts Plug-in option object
        */
       init: function(opts) {
-        opts.passphrase = opts.encrypt ? (opts.passphrase || crypto.key(
-          opts)) : false;
+
+        if (opts.encrypt && !/function/.test(sjcl))
+          throw new Error("Requested use of encryption but failed to include"+
+                          "SJCL libraries");
+
+        opts.passphrase = opts.encrypt ?
+          (opts.passphrase || crypto.key(opts)) : false;
       }
     };
 
