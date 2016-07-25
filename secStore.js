@@ -23,15 +23,14 @@
      * @var {Object} defaults
      * @abstract Default set of options for plug-in
      *
-     * @param {Object} data Data to be setd (JSON objects)
-     * @param {String} passphrase Passphrase to use (optional)
-     * @param {String} storage Storage mechanism (local, session or cookies)
+     * @param {String} key Encryption passphrase
+     * @param {String} storage Storage engine [local|session|cookies]
+     * @param {String} index Default storage index key
      */
     var defaults = {
-      data:         {},
-      key:          'secStore.js',
-      passphrase:   '',
-      storage:      'local'
+      key:          '',
+      storage:      'local',
+      index:        'secStore.js',
     };
 
     /**
@@ -49,9 +48,10 @@
        */
       init: function(opts) {
 
-        if (opts.encrypt && !/function/.test(sjcl))
-          throw new Error("Requested use of encryption but failed to include"+
-                          "SJCL libraries");
+        var engine = window.crypto || sjcl;
+
+        if (opts.encrypt && !/function/.test(engine))
+          throw new Error("Could not load required cryptographic libraries");
 
         opts.passphrase = opts.encrypt ?
           (opts.passphrase || crypto.key(opts)) : false;
@@ -107,10 +107,9 @@
        * @returns {Boolean}
        */
       quota: function(storage) {
-        var max = /local|session/.test(storage) ? 1024 * 1025 * 5 :
-          1024 * 4,
-          cur = libs.total(storage),
-          total = max - cur;
+        var max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4
+          , cur = libs.total(storage)
+          , total = max - cur;
 
         return total > 0;
       },
@@ -124,20 +123,20 @@
        *
        * @returns {Boolean}
        */
-      set: function(opts, cb) {
+      set: function(opts, key, cb) {
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
         if (opts.encrypt) {
           try {
             opts.data = sjcl.encrypt(opts.passphrase,
-                                     storage.fromJSON(opts.data));
+                                     storage.fromJSON(key));
           } catch(err) {
             cb('An error occured encrypting data');
           }
         }
 
-        opts.data = storage.fromJSON(opts.data);
+        opts.data = storage.fromJSON(key);
 
         try {
           this[opts.storage] ?
@@ -375,12 +374,12 @@
        * @returns {String}
        */
       muid: function() {
-        var ret = window.navigator.appName +
-          window.navigator.product +
-          window.navigator.language +
-          window.navigator.platform +
-          window.navigator.oscpu;
-        return encodeURI(ret.replace(/\s/, '|'));
+        var ret = window.navigator.appName + '|'
+          window.navigator.product + '|'
+          window.navigator.language + '|'
+          window.navigator.platform + '|'
+          window.navigator.product;
+        return encodeURI(ret.replace(/\s/, ' '));
       },
 
       /**
@@ -434,8 +433,8 @@
        * @returns {Insteger}
        */
       total: function(storage) {
-        var current = '',
-          engine = window.storage + 'Storage';
+        var current = ''
+          , engine = window.storage + 'Storage';
 
         for (var key in engine) {
           if (engine.hasOwnProperty(key)) {
@@ -495,34 +494,36 @@
      * @function get
      * @abstract Retrieves storage engine data
      *
-     * @param {Object} obj User supplied options
+     * @param {Object} opts User supplied options
+     * @param {String} key Index of data to retrieve
      * @param {Function} cb User supplied callback function
      */
-    secStore.prototype.get = function(obj, cb) {
-      cb = cb || obj;
+    secStore.prototype.get = function(opts, key, cb) {
+      opts = opts || key;
 
-      var opts = libs.merge(obj, defaults);
+      opts = libs.merge(obj, defaults);
 
       setup.init(opts);
 
-      storage.get(opts, cb);
+      storage.get(opts, key, cb);
     };
 
     /**
      * @function set
      * @abstract Saves data to specified storage engine
      *
-     * @param {Object} obj User supplied options
+     * @param {Object} opts User supplied options
+     * @param {Mixed} obj Object/String/Array of data to save
      * @param {Function} cb User supplied callback function
      */
-    secStore.prototype.set = function(obj, cb) {
-      cb = cb || obj;
+    secStore.prototype.set = function(opts, obj, cb) {
+      opts = opts || obj;
 
-      var opts = libs.merge(obj, defaults);
+      opts = libs.merge(opts, defaults);
 
       setup.init(opts);
 
-      storage.set(opts, cb);
+      storage.set(opts, obj, cb);
     };
 
   };
