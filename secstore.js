@@ -8,16 +8,13 @@
  */
 
 
-(function(window, undefined) {
-
-  'use strict';
-
+(((window, undefined) => {
   /**
    * @function secstore
    * @abstract Namespace for saving/retrieving encrypted HTML5 storage engine
    * data
    */
-  var secstore = secstore || function() {
+  const secstore = secstore || (() => {
 
     /**
      * @var {Object} defaults
@@ -27,7 +24,7 @@
      * @param {String} storage Storage engine [local|session|cookies]
      * @param {String} index Default storage index key
      */
-    var defaults = {
+    const defaults = {
       key:          '',
       storage:      'local',
       index:        'secstore.js',
@@ -39,7 +36,7 @@
      * @scope private
      * @abstract Initial setup routines
      */
-    var setup = setup || {
+    const setup = setup || {
 
       /**
        * @function set
@@ -47,7 +44,7 @@
        *
        * @param {Object} opts Plug-in option object
        */
-      init: function(opts) {
+      init(opts) {
 
         if (opts.encrypt && !/function/.test(opts.engine))
           throw new Error("Could not load required cryptographic libraries");
@@ -62,7 +59,7 @@
      * @method storage
      * @abstract Interface to handle storage options
      */
-    var storage = storage || {
+    const storage = storage || {
 
       /**
        * @function quota
@@ -78,10 +75,8 @@
        *
        * @returns {Boolean}
        */
-      quota: function(storage) {
-        var max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4
-          , cur = libs.total(storage)
-          , total = max - cur;
+      quota(storage) {
+        const max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4, cur = libs.total(storage), total = max - cur;
 
         return total > 0;
       },
@@ -95,7 +90,7 @@
        *
        * @returns {Boolean}
        */
-      set: function(opts, key, cb) {
+      set(opts, key, cb) {
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
@@ -129,8 +124,8 @@
        *
        * @returns {Object}
        */
-      get: function(opts, cb) {
-        var ret = false;
+      get(opts, cb) {
+        let ret = false;
 
         try {
           ret = this[opts.storage] ?
@@ -158,8 +153,8 @@
        *
        * @returns {String}
        */
-      fromJSON: function(obj) {
-        var ret;
+      fromJSON(obj) {
+        let ret;
         try {
           ret = JSON.stringify(obj);
         } catch (e) {
@@ -176,8 +171,8 @@
        *
        * @returns {Object}
        */
-      toJSON: function(obj) {
-        var ret;
+      toJSON(obj) {
+        let ret;
         try {
           ret = JSON.parse(obj);
         } catch (e) {
@@ -201,13 +196,12 @@
          *
          * @returns {Boolean}
          */
-        set: function(key, value) {
-          var date = new Date();
+        set(key, value) {
+          const date = new Date();
 
           date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
 
-          document.cookie = key + '=' + value + ';expires=' +
-            date.toGMTString() + ';path=/;domain=' + this.domain();
+          document.cookie = `${key}=${value};expires=${date.toGMTString()};path=/;domain=${this.domain()}`;
 
           return true;
         },
@@ -220,8 +214,11 @@
          *
          * @returns {String|False}
          */
-        get: function(key) {
-          var i, index, value, content = document.cookie.split(";");
+        get(key) {
+          let i;
+          let index;
+          let value;
+          const content = document.cookie.split(";");
 
           for (i = 0; i < content.length; i++) {
             index = content[i].substr(0, content[i].indexOf('='));
@@ -240,7 +237,7 @@
          *
          * @returns {String}
          */
-        domain: function() {
+        domain() {
           return location.hostname;
         }
       },
@@ -259,7 +256,7 @@
          *
          * @returns {Boolean}
          */
-        set: function(opts) {
+        set(opts) {
           try {
             window.localStorage.setItem(opts.key, opts.data);
             return true;
@@ -276,7 +273,7 @@
          *
          * @returns {Object|String|Boolean}
          */
-        get: function(opts) {
+        get(opts) {
           return window.localStorage.getItem(opts.key);
         }
       },
@@ -296,7 +293,7 @@
          *
          * @returns {Boolean}
          */
-        set: function(opts) {
+        set(opts) {
           try {
             window.sessionStorage.setItem(opts.key, opts.data);
             return true;
@@ -313,7 +310,7 @@
          *
          * @returns {Object|String|Boolean}
          */
-        get: function(opts) {
+        get(opts) {
           return window.sessionStorage.getItem(opts.key);
         }
       }
@@ -331,9 +328,8 @@
        *
        * @returns {String}
        */
-      key: function() {
-        var pass = crypto.muid(),
-          salt = crypto.salt(pass);
+      key() {
+        const pass = crypto.muid(), salt = crypto.salt(pass);
 
         return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(pass, salt,
           10000, 256));
@@ -345,11 +341,11 @@
        *
        * @returns {String}
        */
-      muid: function() {
-        var ret = window.navigator.appName + '|'
-          window.navigator.product + '|'
-          window.navigator.language + '|'
-          window.navigator.platform + '|'
+      muid() {
+        const ret = `${window.navigator.appName}|`;
+          `${window.navigator.product}|`
+          `${window.navigator.language}|`
+          `${window.navigator.platform}|`
           window.navigator.product;
         return encodeURI(ret.replace(/\s/, ' '));
       },
@@ -362,14 +358,16 @@
        *
        * @returns {String}
        */
-      salt: function(str) {
-        var rec, ret, hash = [],
-          slt = crypto.iv(str);
+      salt(str) {
+        let rec;
+        let ret;
+        const hash = [];
+        const slt = crypto.iv(str);
 
         hash[0] = sjcl.hash.sha256.hash(str), rec = [], rec = hash[0],
           ret;
 
-        for (var i = 1; i < 3; i++) {
+        for (let i = 1; i < 3; i++) {
           hash[i] = sjcl.hash.sha256.hash(hash[i - 1].concat(slt));
           ret = rec.concat(hash[i]);
         }
@@ -384,7 +382,7 @@
        *
        * @returns {String}
        */
-      iv: function(str) {
+      iv(str) {
         return encodeURI(str.replace(/-/gi, '').substring(16, Math.ceil(
           16 * str.length) % str.length));
       },
@@ -395,13 +393,13 @@
        *
        * @returns {String}
        */
-      fingerprint: function() {
-        var nav = window.navigator
-          , ret = nav.appName +
-                  nav.product +
-                  nav.language +
-                  nav.platform +
-                  nav.product;
+      fingerprint() {
+        const nav = window.navigator,
+              ret = nav.appName +
+                    nav.product +
+                    nav.language +
+                    nav.platform +
+                    nav.product;
 
         return this.hash(ret);
       },
@@ -418,7 +416,7 @@
          *           aquired browser fingerprint
          *
          */
-        genkey: function() {
+        genkey() {
 
         },
 
@@ -433,18 +431,18 @@
          *
          * @returns {String}
          */
-        hash: function(opts, algo, pt, cb) {
-          var algo = algo || 'SHA-512'
-            , binpt = new Uint8Array(pt);
+        hash(opts, algo, pt, cb) {
+          const algo = algo || 'SHA-512',
+                binpt = new Uint8Array(pt);
 
           opts.engine.digest(
             {
               name: algo
             },
             binpt
-          ).then(function(hash) {
+          ).then(hash => {
             cb(null, new Uint8Array(hash));
-          }).catch(function(err) {
+          }).catch(err => {
             cb(err);
           });
         }
@@ -465,11 +463,11 @@
        *
        * @returns {Insteger}
        */
-      total: function(storage) {
-        var current = ''
-          , engine = window.storage + 'Storage';
+      total(storage) {
+        let current = '';
+        const engine = `${window.storage}Storage`;
 
-        for (var key in engine) {
+        for (const key in engine) {
           if (engine.hasOwnProperty(key)) {
             current += engine[key];
           }
@@ -486,11 +484,11 @@
        *
        * @returns {Integer}
        */
-      size: function(obj) {
-        var n = 0;
+      size(obj) {
+        let n = 0;
 
         if (/object/.test(typeof(obj))) {
-          for (var i in obj) {
+          for (const i in obj) {
             if (obj.hasOwnProperty(obj[i])) n++;
           }
         } else if (/array/.test(typeof(obj))) {
@@ -508,10 +506,8 @@
        *
        * @returns {Object}
        */
-      merge: function(defaults, obj) {
-        defaults = defaults || {};
-
-        for (var item in defaults) {
+      merge(defaults={}, obj) {
+        for (const item in defaults) {
           if (defaults.hasOwnProperty(item)) {
             obj[item] = (/object/.test(typeof(defaults[item]))) ?
               this.merge(obj[item], defaults[item]) : defaults[item];
@@ -531,7 +527,7 @@
      * @param {String} key Index of data to retrieve
      * @param {Function} cb User supplied callback function
      */
-    secstore.prototype.get = function(opts, key, cb) {
+    secstore.prototype.get = (opts, key, cb) => {
       opts = opts || key;
 
       opts = libs.merge(opts, defaults);
@@ -549,7 +545,7 @@
      * @param {Mixed} obj Object/String/Array of data to save
      * @param {Function} cb User supplied callback function
      */
-    secstore.prototype.set = function(opts, obj, cb) {
+    secstore.prototype.set = (opts, obj, cb) => {
       opts = libs.merge(opts || obj, defaults);
 
       setup.init(opts);
@@ -557,9 +553,8 @@
       storage.set(opts, obj, cb);
     };
 
-  };
+  });
 
   /* secstore.js, do work */
   window.secstore = new secstore;
-
-})(window);
+}))(window);
