@@ -99,27 +99,29 @@
        * @abstract Interface for saving to available storage mechanisms
        *
        * @param {Object} opts Default options
+       * @param {String} key Key of storage object
+       * @param {Object} data Data to save
        * @param {Function} cb Callback function
        *
        * @returns {Boolean}
        */
-      set(opts, key, cb) {
+      set(opts, key, data, cb) {
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
         if (opts.encrypt) {
           try {
-            opts.data = sjcl.encrypt(opts.passphrase,
-                                     storage.fromJSON(key));
+            data = sjcl.encrypt(opts.passphrase,
+                                storage.fromJSON(key));
           } catch(err) {
             cb('An error occured encrypting data');
           }
         }
 
-        opts.data = storage.fromJSON(key);
+        data = storage.fromJSON(key);
 
         try {
-          opts.storage.set(opts);
+          opts.storage.set(key, data);
         } catch(err) {
           cb('An error occured saving data');
         }
@@ -133,15 +135,16 @@
        * @abstract Interface for retrieving from available storage mechanisms
        *
        * @param {Object} opts Default options
+       * @param {String} key Key of storage object to retrieve
        * @param {Function} cb Callback function
        *
        * @returns {Object}
        */
-      get(opts, cb) {
+      get(opts, key, cb) {
         let ret = false;
 
         try {
-          ret = opts.storage.get(opts);
+          ret = opts.storage.get(key);
         } catch(err) {
           cb('An error retrieving saved data');
         }
@@ -437,15 +440,16 @@
      * @abstract Saves data to specified storage engine
      *
      * @param {Object} opts User supplied options
-     * @param {Mixed} obj Object/String/Array of data to save
+     * @param {String} key Index to save data to
+     * @param {Mixed} data Object/String/Array of data to save
      * @param {Function} cb User supplied callback function
      */
-    secstore.prototype.set = (opts, obj, cb) => {
-      opts = libs.merge(opts || obj, defaults);
+    secstore.prototype.set = (opts, key, data, cb) => {
+      opts = libs.merge(opts, defaults);
 
       setup.init(opts);
 
-      storage.set(opts, obj, cb);
+      storage.set(opts, key, data, cb);
     };
 
   });
