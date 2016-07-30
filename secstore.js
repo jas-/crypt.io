@@ -9,6 +9,7 @@
 
 
 (((window, undefined) => {
+
   /**
    * @function secstore
    * @abstract Namespace for saving/retrieving encrypted HTML5 storage engine
@@ -16,12 +17,13 @@
    */
   const secstore = secstore || (() => {
 
+
     /**
      * @var {Object} defaults
      * @abstract Default set of options for plug-in
      *
      * @param {String} key Encryption passphrase
-     * @param {String} storage Storage engine [local|session|cookies]
+     * @param {String} storage Storage engine [local|session]
      * @param {String} index Default storage index key
      */
     const defaults = {
@@ -31,12 +33,14 @@
       engine:       false
     };
 
+
     /**
      * @method setup
      * @scope private
      * @abstract Initial setup routines
      */
     const setup = setup || {
+
 
       /**
        * @function set
@@ -45,6 +49,11 @@
        * @param {Object} opts Plug-in option object
        */
       init(opts) {
+
+        opts.storage = opts.storage + 'Storage';
+
+        if (!opts.storage || !/function/.test(opts.storage))
+          throw new Error("Storage engine specified does not exist in DOM");
 
         if (opts.encrypt && !/function/.test(opts.engine))
           throw new Error("Could not load required cryptographic libraries");
@@ -61,6 +70,7 @@
      */
     const storage = storage || {
 
+
       /**
        * @function quota
        * @abstract Tests specified storage option for current amount of space
@@ -76,10 +86,13 @@
        * @returns {Boolean}
        */
       quota(storage) {
-        const max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4, cur = libs.total(storage), total = max - cur;
+        const max = 1024 * 1025 * 5,
+              cur = libs.total(storage),
+              total = max - cur;
 
-        return total > 0;
+        return total >= 0;
       },
+
 
       /**
        * @function set
@@ -106,14 +119,14 @@
         opts.data = storage.fromJSON(key);
 
         try {
-          this[opts.storage] ?
-            this[opts.storage].set(opts) : this.local.set(opts);
+          opts.storage.set(opts);
         } catch(err) {
           cb('An error occured saving data');
         }
 
         cb(null, 'Successfully set data');
       },
+
 
       /**
        * @function get
@@ -128,8 +141,7 @@
         let ret = false;
 
         try {
-          ret = this[opts.storage] ?
-            this[opts.storage].get(opts) : this.local.get(opts);
+          ret = opts.storage.get(opts);
         } catch(err) {
           cb('An error retrieving saved data');
         }
@@ -144,6 +156,7 @@
 
         cb(null, ret);
       },
+
 
       /**
        * @function fromJSON
@@ -163,6 +176,7 @@
         return ret;
       },
 
+
       /**
        * @function toJSON
        * @abstract Creates JSON object from formatted string
@@ -179,148 +193,16 @@
           ret = obj;
         }
         return ret;
-      },
-
-      /**
-       * @method cookie
-       * @abstract Method for handling setting & retrieving of cookie objects
-       */
-      cookie: {
-
-        /**
-         * @function set
-         * @abstract Handle setting of cookie objects
-         *
-         * @param {String} key Key to use for cookies
-         * @param {String|Object} value String or object to place in cookie
-         *
-         * @returns {Boolean}
-         */
-        set(key, value) {
-          const date = new Date();
-
-          date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000));
-
-          document.cookie = `${key}=${value};expires=${date.toGMTString()};path=/;domain=${this.domain()}`;
-
-          return true;
-        },
-
-        /**
-         * @function get
-         * @abstract Handle retrieval of cookie objects
-         *
-         * @param {String} key cookie key
-         *
-         * @returns {String|False}
-         */
-        get(key) {
-          let i;
-          let index;
-          let value;
-          const content = document.cookie.split(";");
-
-          for (i = 0; i < content.length; i++) {
-            index = content[i].substr(0, content[i].indexOf('='));
-            value = content[i].substr(content[i].indexOf('=') + 1);
-            index = index.replace(/^\s+|\s+$/g, '');
-            if (index == key) {
-              return unescape(value);
-            }
-          }
-          return false;
-        },
-
-        /**
-         * @function domain
-         * @abstract Provides current domain of client for cookie realm
-         *
-         * @returns {String}
-         */
-        domain() {
-          return location.hostname;
-        }
-      },
-
-      /**
-       * @method local
-       * @abstract Method for handling setting & retrieving of localStorage objects
-       */
-      local: {
-
-        /**
-         * @function set
-         * @abstract Handle setting & retrieving of localStorage objects
-         *
-         * @param {Object} opts Application defaults
-         *
-         * @returns {Boolean}
-         */
-        set(opts) {
-          try {
-            window.localStorage.setItem(opts.key, opts.data);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        },
-
-        /**
-         * @function get
-         * @abstract Handle retrieval of localStorage objects
-         *
-         * @param {Object} o Application defaults
-         *
-         * @returns {Object|String|Boolean}
-         */
-        get(opts) {
-          return window.localStorage.getItem(opts.key);
-        }
-      },
-
-      /**
-       * @method session
-       * @abstract Method for handling setting & retrieving of sessionStorage objects
-       */
-      session: {
-
-        /**
-         * @function set
-         * @scope private
-         * @abstract Set session storage objects
-         *
-         * @param {Object} o Application defaults
-         *
-         * @returns {Boolean}
-         */
-        set(opts) {
-          try {
-            window.sessionStorage.setItem(opts.key, opts.data);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        },
-
-        /**
-         * @function get
-         * @abstract Retrieves sessionStorage objects
-         *
-         * @param {Object} opts Application defaults
-         *
-         * @returns {Object|String|Boolean}
-         */
-        get(opts) {
-          return window.sessionStorage.getItem(opts.key);
-        }
       }
     };
+
 
     /**
      * @method crypto
      * @abstract Interface to handle encryption option
      */
     var crypto = crypto || {
+
 
       /**
        * @function key
@@ -334,6 +216,7 @@
         return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(pass, salt,
           10000, 256));
       },
+
 
       /**
        * @function muid
@@ -349,6 +232,7 @@
           window.navigator.product;
         return encodeURI(ret.replace(/\s/, ' '));
       },
+
 
       /**
        * @function salt
@@ -374,6 +258,7 @@
         return JSON.stringify(sjcl.codec.hex.fromBits(ret));
       },
 
+
       /**
        * @function iv
        * @abstract Creates IV based on UID
@@ -386,6 +271,7 @@
         return encodeURI(str.replace(/-/gi, '').substring(16, Math.ceil(
           16 * str.length) % str.length));
       },
+
 
       /**
        * @function fingerprint
@@ -404,11 +290,13 @@
         return this.hash(ret);
       },
 
+
       /**
        * @method native
        * @abstract Handles crypto operations using the browsers crypto api
        */
       native: {
+
 
         /**
          * @function genkey
@@ -419,6 +307,7 @@
         genkey() {
 
         },
+
 
         /**
          * @function hash
@@ -449,11 +338,13 @@
       }
     };
 
+
     /**
      * @method libs
      * @abstract Miscellaneous helper libraries
      */
     var libs = libs || {
+
 
       /**
        * @function total
@@ -476,6 +367,7 @@
         return current ? 3 + ((current.length * 16) / (8 * 1024)) : 0;
       },
 
+
       /**
        * @function size
        * @abstract Perform calculation on objects
@@ -496,6 +388,7 @@
         }
         return n;
       },
+
 
       /**
        * @function merge
@@ -519,6 +412,7 @@
       }
     };
 
+
     /**
      * @function get
      * @abstract Retrieves storage engine data
@@ -537,6 +431,7 @@
       storage.get(opts, key, cb);
     };
 
+
     /**
      * @function set
      * @abstract Saves data to specified storage engine
@@ -554,6 +449,7 @@
     };
 
   });
+
 
   /* secstore.js, do work */
   window.secstore = new secstore;
