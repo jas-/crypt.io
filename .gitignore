@@ -1,2 +1,5 @@
 index.html
 bower_components
+test
+tests
+*jquery*
