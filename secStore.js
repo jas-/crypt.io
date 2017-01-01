@@ -4,7 +4,7 @@
  * https://www.github.com/jas-/secStore.js
  *
  * Author: Jason Gerfen <jason.gerfen@gmail.com>
- * License: GPL (see LICENSE)
+ * License: GPLv3 (see LICENSE)
  */
 (function(window, undefined) {
 
