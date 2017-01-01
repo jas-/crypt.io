@@ -1,12 +1,12 @@
 {
   "name": "secStore.js",
-  "main": "secStore.min.js",
+  "main": "dist/secStore.min.js",
   "version": "0.1.2",
   "homepage": "https://github.com/jas-/secStore.js",
   "authors": [
     "jas- <jason.gerfen@gmail.com>"
   ],
-  "description": "Encrypted browser storage",
+  "description": "Transparent encrypted browser storage",
   "keywords": [
     "HTML5",
     "encryption",
@@ -25,6 +25,6 @@
     "tests"
   ],
   "dependencies": {
-    "sjcl": "~1.0.0"
+    "sjcl": "~1.0.6"
   }
 }
