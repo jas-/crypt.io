@@ -1,7 +1,7 @@
 {
   "name": "crypt.io",
   "main": "dist/crypt.io.min.js",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "homepage": "https://github.com/jas-/crypt.io",
   "authors": [
     "jas- <jason.gerfen@gmail.com>"
