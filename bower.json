@@ -1,8 +1,8 @@
 {
-  "name": "secStore.js",
-  "main": "dist/secStore.min.js",
+  "name": "crypt.io",
+  "main": "dist/crypt.io.min.js",
   "version": "0.1.4",
-  "homepage": "https://github.com/jas-/secStore.js",
+  "homepage": "https://github.com/jas-/crypt.io",
   "authors": [
     "jas- <jason.gerfen@gmail.com>"
   ],
@@ -15,7 +15,9 @@
     "sessionStorage",
     "localStorage",
     "cookies",
-    "AES-CCM"
+    "AES-CCM",
+    "crypt.io",
+    "secStore.js"
   ],
   "license": "GPLv3",
   "ignore": [
