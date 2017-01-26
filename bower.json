@@ -1,7 +1,7 @@
 {
   "name": "secStore.js",
   "main": "dist/secStore.min.js",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "homepage": "https://github.com/jas-/secStore.js",
   "authors": [
     "jas- <jason.gerfen@gmail.com>"
@@ -9,6 +9,8 @@
   "description": "Transparent encrypted browser storage",
   "keywords": [
     "HTML5",
+    "storage",
+    "storage.js",
     "encryption",
     "sessionStorage",
     "localStorage",

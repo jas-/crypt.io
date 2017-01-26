@@ -1,15 +1,7 @@
-#secStore.js
-
-  Fork me @ https://www.github.com/jas-/secStore.js
-
-##Description:
-secStore is simple wrapper to handle client storage mechanisms
-within the browser.
-
-It is named secStore.js because not only will this plug-in assist
-you in transparent storage & retrieval of client data, but it
-will optionally provide a layer of security for said data with
-the use of the [SJCL (Stanford Javascript Crypto Libraries)](http://bitwiseshiftleft.github.io/sjcl/).
+#crypt.io
+crypt.io implements secures browser storage with the
+[SJCL (Stanford Javascript Crypto Libraries)](http://bitwiseshiftleft.github.io/sjcl/)
+crypto library.
 
 ##Installation:
 Three methods are available for setup and use; using bower, cloning & manual
@@ -18,24 +10,24 @@ Three methods are available for setup and use; using bower, cloning & manual
 To setup using bower
 
 ```sh
-%> bower install secstore.js
+%> bower install crypt.io
 ```
 
 ###Clone
 To setup using git
 
 ```sh
-%> git clone --recursive https://github.com/jas-/secStore.js.git
+%> git clone --recursive https://github.com/jas-/crypt.io.git
 ```
 
 ###Manual
-Copy the [secStore.min.js](https://github.com/jas-/secStore.js/blob/master/secStore.min.js)
+Copy the [crypt.io.min.js](https://github.com/jas-/crypt.io/blob/master/dist/crypt.io.min.js)
 and the [sjcl](https://github.com/bitwiseshiftleft/sjcl) libraries to your web project
 and include them like so.
 
 ```html
 <script src="/path/to/sjcl.js"></script>
-<script src="/path/to/secStore.min.js"></script>
+<script src="/path/to/crypt.io.min.js"></script>
 ```
 
 ##Requirements:
@@ -66,7 +58,7 @@ Here are a few examples of use to get you started.
 Saving data...
 
 ```javascript
-var storage = new secStore
+var storage = new cryptio
   , options = {
     encrypt: true,
     data: {
@@ -84,7 +76,7 @@ storage.set(options, function(err, results){
 Retrieving data...
 
 ```javascript
-var storage = new secStore
+var storage = new crypt.io
   , options = {
     encrypt: true
   };
