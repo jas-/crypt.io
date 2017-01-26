@@ -76,7 +76,7 @@ storage.set(options, function(err, results){
 Retrieving data...
 
 ```javascript
-var storage = new crypt.io
+var storage = new cryptio
   , options = {
     encrypt: true
   };
