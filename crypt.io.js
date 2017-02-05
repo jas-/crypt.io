@@ -22,14 +22,11 @@
      * @abstract Default set of options for plug-in
      *
      * @param {Boolean} encrypt Optionally encrypt stored data
-     * @param {Object} data Data to be setd (JSON objects)
      * @param {String} passphrase Passphrase to use (optional)
      * @param {String} storage Storage mechanism (local, session or cookies)
      */
     var defaults = {
-      encrypt: false,
-      data: {},
-      key: 'crypt.io',
+      encrypt: true,
       passphrase: '',
       storage: 'local'
     };
@@ -49,8 +46,8 @@
        * @param {Object} opts Plug-in option object
        */
       init: function(opts) {
-        opts.passphrase = opts.encrypt ? (opts.passphrase || crypto.key(
-          opts)) : false;
+        opts.passphrase = opts.encrypt ?
+          (opts.passphrase || crypto.key(opts)) : false;
       }
     };
 
@@ -89,22 +86,25 @@
        * @abstract Interface for saving to available storage mechanisms
        *
        * @param {Object} opts Default options
+       * @param {String} key Index of storage object
+       * @param {Object} data Data to be stored
        * @param {Function} cb Callback function
        *
        * @returns {Boolean}
        */
-      set: function(opts, cb) {
+      set: function(opts, key, data, cb) {
         var ret = false;
 
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
         opts.data = (opts.encrypt) ?
-          sjcl.encrypt(opts.passphrase, storage.fromJSON(opts.data)) :
-          storage.fromJSON(opts.data);
+          sjcl.encrypt(opts.passphrase, storage.fromJSON(data)) :
+          storage.fromJSON(data);
 
-        ret = this[opts.storage] ? this[opts.storage].set(opts) : this.local
-          .set(opts);
+        ret = this[opts.storage] ?
+          this[opts.storage].set(opts, key, data) :
+          this.local.set(opts, key, data);
 
         if (!ret) {
           cb('Error occured saving data');
@@ -119,15 +119,17 @@
        * @abstract Interface for retrieving from available storage mechanisms
        *
        * @param {Object} opts Default options
+       * @param {String} key Index of storage object
        * @param {Function} cb Callback function
        *
        * @returns {Object}
        */
-      get: function(opts, cb) {
+      get: function(opts, key, cb) {
         var ret = false;
 
-        ret = this[opts.storage] ? this[opts.storage].get(opts) :
-          this.local.get(opts);
+        ret = this[opts.storage] ?
+          this[opts.storage].get(opts, key) :
+          this.local.get(opts, key);
 
         ret = sjcl.decrypt(opts.passphrase, ret);
         ret = storage.toJSON(ret);
@@ -249,12 +251,14 @@
          * @abstract Handle setting & retrieving of localStorage objects
          *
          * @param {Object} opts Application defaults
+         * @param {String} key Index of storage object
+         * @param {Object} data Data to be stored
          *
          * @returns {Boolean}
          */
-        set: function(opts) {
+        set: function(opts, key, data) {
           try {
-            window.localStorage.setItem(opts.key, opts.data);
+            window.localStorage.setItem(opts, key, data);
             return true;
           } catch (e) {
             return false;
@@ -266,12 +270,13 @@
          * @scope private
          * @abstract Handle retrieval of localStorage objects
          *
-         * @param {Object} o Application defaults
+         * @param {Object} opts Application defaults
+         * @param {String} key Index of storage object
          *
          * @returns {Object|String|Boolean}
          */
-        get: function(opts) {
-          return window.localStorage.getItem(opts.key);
+        get: function(opts, key) {
+          return window.localStorage.getItem(opts, key);
         }
       },
 
@@ -287,13 +292,15 @@
          * @scope private
          * @abstract Set session storage objects
          *
-         * @param {Object} o Application defaults
+         * @param {Object} opts Application defaults
+         * @param {String} key Index of storage object
+         * @param {Object} data Data to be stoed
          *
          * @returns {Boolean}
          */
-        set: function(opts) {
+        set: function(opts, key, data) {
           try {
-            window.sessionStorage.setItem(opts.key, opts.data);
+            window.sessionStorage.setItem(opts, key, data);
             return true;
           } catch (e) {
             return false;
@@ -478,16 +485,17 @@
      * @abstract Retrieves storage engine data
      *
      * @param {Object} obj User supplied options
+     * @param {String} key Key of storage object to retrieve
      * @param {Function} cb User supplied callback function
      */
-    cryptio.prototype.get = function(obj, cb) {
-      cb = cb || obj;
+    cryptio.prototype.get = function(obj, key, cb) {
+      cb = cb || key;
 
       var opts = libs.merge(obj, defaults);
 
       setup.init(opts);
 
-      storage.get(opts, cb);
+      storage.get(opts, key, cb);
     };
 
     /**
@@ -496,21 +504,23 @@
      * @abstract Saves data to specified storage engine
      *
      * @param {Object} obj User supplied options
+     * @param {String} key Key of storage object to retrieve
+     * @param {Object} data User provided data to store
      * @param {Function} cb User supplied callback function
      */
-    cryptio.prototype.set = function(obj, cb) {
-      cb = cb || obj;
+    cryptio.prototype.set = function(obj, key, data, cb) {
+      cb = cb || data;
 
       var opts = libs.merge(obj, defaults);
 
       setup.init(opts);
 
-      storage.set(opts, cb);
+      storage.set(opts, key, data, cb);
     };
 
   };
 
   /* crypt.io, do work */
-  window.cryptio = cryptio;
+  window.cryptio = new cryptio;
 
 })(window);

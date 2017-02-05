@@ -58,16 +58,22 @@ Here are a few examples of use to get you started.
 Saving data...
 
 ```javascript
-var storage = new cryptio
-  , options = {
-    encrypt: true,
-    data: {
-      key: 'some data that is somewhat private'
-    }
-  };
+var storage = cryptio
+  , inventory = [{
+  	  "SKU": "39-48949",
+	    "Price": 618,
+	    "Item": "Snowboard"
+    }, {
+	    "SKU": "99-28128",
+    	"Price": 78.99,
+	    "Item": "Cleats"
+    }, {
+	    "SKU": "83-38285",
+	    "Price": 3.99,
+	    "Item": "Hockey Puck"
+    }];
 
-
-storage.set(options, function(err, results){
+storage.set(options, 'inventory', inventory, function(err, results){
   if (err) throw err;
   console.log(results);
 });
@@ -76,13 +82,9 @@ storage.set(options, function(err, results){
 Retrieving data...
 
 ```javascript
-var storage = new cryptio
-  , options = {
-    encrypt: true
-  };
+var storage = cryptio;
 
-
-storage.get(options, function(err, results){
+storage.get(options, 'inventory', function(err, results){
   if (err) throw err;
   console.log(results);
 });
@@ -93,23 +95,16 @@ Want to use a different storage engine like the HTML5 sessionStorage feature?
 
 ```javascript
 var options = {
-  encrypt: true,
   storage: 'session',
-  data: {
-    key: 'some data that is somewhat private'
-  }
 };
 ```
 
-Or some depreciated cookies? This is the least tested option
+Or some depreciated cookies? This is the least tested option but is used by
+default in the event `localStorage` & `sessionStorage` are missing.
 
 ```javascript
 var options = {
-  encrypt: true,
   storage: 'cookies',
-  data: {
-    key: 'some data that is somewhat private'
-  }
 };
 ```
 
@@ -124,11 +119,7 @@ for his/her passphrase. Here is an example of user input for the passphrase.
 var pass = window.prompt("Please enter password...", "a custom password");
 
 var options = {
-  encrypt: true,
   passphrase: pass,
-  data: {
-    key: 'some data that is somewhat private'
-  }
 };
 ```
 
@@ -146,11 +137,7 @@ Saving data (please keep in mind that a static value for the salt is not recomme
 var pass = window.prompt("Enter password to protect saved data", "");
 
 var options = {
-  encrypt: true,
   passphrase: sjcl.misc.pbkdf2(pass, "salt", 1000000, 256),
-  data: {
-    key: 'some data that is somewhat private'
-  }
 };
 ```
 

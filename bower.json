@@ -1,7 +1,8 @@
 {
   "name": "crypt.io",
   "main": "dist/crypt.io.min.js",
-  "version": "0.1.6",
+  "version": "1.0.0",
+  "license": "MIT",
   "homepage": "https://github.com/jas-/crypt.io",
   "authors": [
     "jas- <jason.gerfen@gmail.com>"
@@ -12,21 +13,14 @@
     "storage",
     "storage.js",
     "encryption",
+    "decryption",
+    "crypto",
     "sessionStorage",
     "localStorage",
     "cookies",
-    "AES-CCM",
+    "AES",
     "crypt.io",
     "secStore.js"
-  ],
-  "license": "GPLv3",
-  "ignore": [
-    "**/.*",
-    "3rd-party",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
   ],
   "dependencies": {
     "sjcl": "~1.0.6"
