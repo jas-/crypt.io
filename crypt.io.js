@@ -4,7 +4,7 @@
  * https://www.github.com/jas-/crypt.io
  *
  * Author: Jason Gerfen <jason.gerfen@gmail.com>
- * License: GPLv3 (see LICENSE)
+ * License: MIT (see LICENSE)
  */
 (function(window, undefined) {
 
@@ -33,14 +33,12 @@
 
     /**
      * @method setup
-     * @scope private
      * @abstract Initial setup routines
      */
     var setup = setup || {
 
       /**
        * @function set
-       * @scope private
        * @abstract Initialization
        *
        * @param {Object} opts Plug-in option object
@@ -53,14 +51,12 @@
 
     /**
      * @method storage
-     * @scope private
      * @abstract Interface to handle storage options
      */
     var storage = storage || {
 
       /**
        * @function quota
-       * @scope private
        * @abstract Tests specified storage option for current amount of space available.
        *  - Cookies: 4K
        *  - localStorage: 5MB
@@ -82,7 +78,6 @@
 
       /**
        * @function set
-       * @scope private
        * @abstract Interface for saving to available storage mechanisms
        *
        * @param {Object} opts Default options
@@ -115,7 +110,6 @@
 
       /**
        * @function get
-       * @scope private
        * @abstract Interface for retrieving from available storage mechanisms
        *
        * @param {Object} opts Default options
@@ -143,7 +137,6 @@
 
       /**
        * @function fromJSON
-       * @scope private
        * @abstract Convert to JSON object to string
        *
        * @param {Object|Array|String} obj Object, Array or String to convert to JSON object
@@ -162,7 +155,6 @@
 
       /**
        * @function toJSON
-       * @scope private
        * @abstract Creates JSON object from formatted string
        *
        * @param {String} obj Object to convert to JSON object
@@ -181,14 +173,12 @@
 
       /**
        * @method cookie
-       * @scope private
        * @abstract Method for handling setting & retrieving of cookie objects
        */
       cookie: {
 
         /**
          * @function set
-         * @scope private
          * @abstract Handle setting of cookie objects
          *
          * @param {String} key Key to use for cookies
@@ -206,7 +196,6 @@
 
         /**
          * @function get
-         * @scope private
          * @abstract Handle retrieval of cookie objects
          *
          * @param {String} key cookie key
@@ -228,7 +217,6 @@
 
         /**
          * @function domain
-         * @scope private
          * @abstract Provides current domain of client for cookie realm
          *
          * @returns {String}
@@ -240,14 +228,12 @@
 
       /**
        * @method local
-       * @scope private
        * @abstract Method for handling setting & retrieving of localStorage objects
        */
       local: {
 
         /**
          * @function set
-         * @scope private
          * @abstract Handle setting & retrieving of localStorage objects
          *
          * @param {String} key Index of storage object
@@ -266,7 +252,6 @@
 
         /**
          * @function get
-         * @scope private
          * @abstract Handle retrieval of localStorage objects
          *
          * @param {String} key Index of storage object
@@ -280,14 +265,12 @@
 
       /**
        * @method session
-       * @scope private
        * @abstract Method for handling setting & retrieving of sessionStorage objects
        */
       session: {
 
         /**
          * @function set
-         * @scope private
          * @abstract Set session storage objects
          *
          * @param {String} key Index of storage object
@@ -306,7 +289,6 @@
 
         /**
          * @function get
-         * @scope private
          * @abstract Retrieves sessionStorage objects
          *
          * @param {String} key Index of storage object
@@ -321,14 +303,12 @@
 
     /**
      * @method crypto
-     * @scope private
      * @abstract Interface to handle encryption option
      */
     var crypto = crypto || {
 
       /**
        * @function key
-       * @scope private
        * @abstract Prepares key for encryption/decryption routines
        *
        * @returns {String}
@@ -343,7 +323,6 @@
 
       /**
        * @function muid
-       * @scope private
        * @abstract Generates a machine identifier
        *
        * @returns {String}
@@ -364,7 +343,6 @@
 
       /**
        * @function salt
-       * @scope private
        * @abstract Creates salt from string & iv
        *
        * @param {String} str Machine identification used as salt
@@ -388,7 +366,6 @@
 
       /**
        * @function iv
-       * @scope private
        * @abstract Creates IV based on UID
        *
        * @param {String} str Supplied string
@@ -403,14 +380,12 @@
 
     /**
      * @method libs
-     * @scope private
      * @abstract Miscellaneous helper libraries
      */
     var libs = libs || {
 
       /**
        * @function total
-       * @scope private
        * @abstract Returns size of specified storage
        *
        * @param {String} engine Storage mechanism
@@ -432,7 +407,6 @@
 
       /**
        * @function size
-       * @scope private
        * @abstract Perform calculation on objects
        *
        * @param {Object|Array} obj The object/array to calculate
@@ -454,7 +428,6 @@
 
       /**
        * @function merge
-       * @scope private
        * @abstract Perform preliminary option/default object merge
        *
        * @param {Object} defaults Application defaults
@@ -479,7 +452,6 @@
 
     /**
      * @function get
-     * @scope public
      * @abstract Retrieves storage engine data
      *
      * @param {Object} obj User supplied options
@@ -499,7 +471,6 @@
 
     /**
      * @function set
-     * @scope public
      * @abstract Saves data to specified storage engine
      *
      * @param {Object} obj User supplied options
