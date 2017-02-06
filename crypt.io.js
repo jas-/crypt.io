@@ -94,18 +94,17 @@
        */
       set: function(opts, key, data, cb) {
         var ret = false;
-console.log(key+" => "+data)
 
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
-        opts.data = (opts.encrypt) ?
+        data = (opts.encrypt) ?
           sjcl.encrypt(opts.passphrase, storage.fromJSON(data)) :
           storage.fromJSON(data);
 
         ret = this[opts.storage] ?
-          this[opts.storage].set(opts, key, data) :
-          this.local.set(opts, key, data);
+          this[opts.storage].set(key, data) :
+          this.local.set(key, data);
 
         if (!ret) {
           cb('Error occured saving data');
@@ -129,8 +128,8 @@ console.log(key+" => "+data)
         var ret = false;
 
         ret = this[opts.storage] ?
-          this[opts.storage].get(opts, key) :
-          this.local.get(opts, key);
+          this[opts.storage].get(key) :
+          this.local.get(key);
 
         ret = sjcl.decrypt(opts.passphrase, ret);
         ret = storage.toJSON(ret);
@@ -251,15 +250,14 @@ console.log(key+" => "+data)
          * @scope private
          * @abstract Handle setting & retrieving of localStorage objects
          *
-         * @param {Object} opts Application defaults
          * @param {String} key Index of storage object
          * @param {Object} data Data to be stored
          *
          * @returns {Boolean}
          */
-        set: function(opts, key, data) {
+        set: function(key, data) {
           try {
-            window.localStorage.setItem(opts, key, data);
+            window.localStorage.setItem(key, data);
             return true;
           } catch (e) {
             return false;
@@ -271,13 +269,12 @@ console.log(key+" => "+data)
          * @scope private
          * @abstract Handle retrieval of localStorage objects
          *
-         * @param {Object} opts Application defaults
          * @param {String} key Index of storage object
          *
          * @returns {Object|String|Boolean}
          */
-        get: function(opts, key) {
-          return window.localStorage.getItem(opts, key);
+        get: function(key) {
+          return window.localStorage.getItem(key);
         }
       },
 
@@ -293,15 +290,14 @@ console.log(key+" => "+data)
          * @scope private
          * @abstract Set session storage objects
          *
-         * @param {Object} opts Application defaults
          * @param {String} key Index of storage object
          * @param {Object} data Data to be stoed
          *
          * @returns {Boolean}
          */
-        set: function(opts, key, data) {
+        set: function(key, data) {
           try {
-            window.sessionStorage.setItem(opts, key, data);
+            window.sessionStorage.setItem(key, data);
             return true;
           } catch (e) {
             return false;
@@ -313,12 +309,12 @@ console.log(key+" => "+data)
          * @scope private
          * @abstract Retrieves sessionStorage objects
          *
-         * @param {Object} opts Application defaults
+         * @param {String} key Index of storage object
          *
          * @returns {Object|String|Boolean}
          */
-        get: function(opts) {
-          return window.sessionStorage.getItem(opts.key);
+        get: function(key) {
+          return window.sessionStorage.getItem(key);
         }
       }
     };
@@ -386,6 +382,7 @@ console.log(key+" => "+data)
           hash[i] = sjcl.hash.sha256.hash(hash[i - 1].concat(slt));
           ret = rec.concat(hash[i]);
         }
+
         return JSON.stringify(sjcl.codec.hex.fromBits(ret));
       },
 
@@ -490,7 +487,8 @@ console.log(key+" => "+data)
      * @param {Function} cb User supplied callback function
      */
     cryptio.prototype.get = function(obj, key, cb) {
-      cb = cb || key;
+      if (cb == undefined)
+        cb = key, key = obj, obj = {};
 
       var opts = libs.merge(obj, defaults);
 
