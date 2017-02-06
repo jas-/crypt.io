@@ -3,36 +3,6 @@ crypt.io implements secures browser storage with the
 [SJCL (Stanford Javascript Crypto Libraries)](http://bitwiseshiftleft.github.io/sjcl/)
 crypto library.
 
-##Installation:
-Three methods are available for setup and use; using bower, cloning & manual
-
-###Bower
-To setup using bower
-
-```sh
-%> bower install crypt.io
-```
-
-###Clone
-To setup using git
-
-```sh
-%> git clone --recursive https://github.com/jas-/crypt.io.git
-```
-
-###Manual
-Copy the [crypt.io.min.js](https://github.com/jas-/crypt.io/blob/master/dist/crypt.io.min.js)
-and the [sjcl](https://github.com/bitwiseshiftleft/sjcl) libraries to your web project
-and include them like so.
-
-```html
-<script src="/path/to/sjcl.js"></script>
-<script src="/path/to/crypt.io.min.js"></script>
-```
-
-##Requirements:
-* SJCL libraries (optional - https://github.com/bitwiseshiftleft/sjcl)
-
 ##Features:
 * HTML5 localStorage support
 * HTML5 sessionStorage support
@@ -41,15 +11,8 @@ and include them like so.
 * Quota support (4K for cookies and 5MB for HTML5 mechanisms)
 
 ##Options:
-* _encrypt_: `{Boolean}` Provide transparent symmetric encryption of saved data
-* _data_: `{Mixed}` Object, string, array or booleans of data to be saved
-* _key_: `{String}` Unique identifier used as storage key
 * _passphrase_: `{String}` User supplied passphrase
 * _storage_: `{String}` Storage engine to use; local, session or cookies
-
-##Support:
-Found a bug? Want a feature added? General feedback or kudos? Please open
-an issue so I can address it. Thanks!
 
 ##Examples:
 Here are a few examples of use to get you started.
@@ -99,8 +62,7 @@ var options = {
 };
 ```
 
-Or some depreciated cookies? This is the least tested option but is used by
-default in the event `localStorage` & `sessionStorage` are missing.
+Or some depreciated cookies? This is the least tested option
 
 ```javascript
 var options = {
@@ -119,7 +81,11 @@ for his/her passphrase. Here is an example of user input for the passphrase.
 var pass = window.prompt("Please enter password...", "a custom password");
 
 var options = {
+  encrypt: true,
   passphrase: pass,
+  data: {
+    key: 'some data that is somewhat private'
+  }
 };
 ```
 
@@ -137,7 +103,11 @@ Saving data (please keep in mind that a static value for the salt is not recomme
 var pass = window.prompt("Enter password to protect saved data", "");
 
 var options = {
+  encrypt: true,
   passphrase: sjcl.misc.pbkdf2(pass, "salt", 1000000, 256),
+  data: {
+    key: 'some data that is somewhat private'
+  }
 };
 ```
 
@@ -158,3 +128,36 @@ a unique transparent key used by the browser.
 While this technique is possible, it is typically a low threat
 vector due to the technologies & knowledge necessary to exploit.
 
+##Requirements:
+* SJCL libraries (optional - https://github.com/bitwiseshiftleft/sjcl)
+
+##Installation:
+Three methods are available for setup and use; using bower, cloning & manual
+
+###Bower
+To setup using bower
+
+```sh
+%> bower install crypt.io
+```
+
+###Clone
+To setup using git
+
+```sh
+%> git clone --recursive https://github.com/jas-/crypt.io.git
+```
+
+###Manual
+Copy the [crypt.io.min.js](https://github.com/jas-/crypt.io/blob/master/dist/crypt.io.min.js)
+and the [sjcl](https://github.com/bitwiseshiftleft/sjcl) libraries to your web project
+and include them like so.
+
+```html
+<script src="/path/to/sjcl.js"></script>
+<script src="/path/to/crypt.io.min.js"></script>
+```
+
+##Support:
+Found a bug? Want a feature added? General feedback or kudos? Please open
+an issue so I can address it. Thanks!
