@@ -94,6 +94,7 @@
        */
       set: function(opts, key, data, cb) {
         var ret = false;
+console.log(key+" => "+data)
 
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
@@ -509,7 +510,8 @@
      * @param {Function} cb User supplied callback function
      */
     cryptio.prototype.set = function(obj, key, data, cb) {
-      cb = cb || data;
+      if (cb == undefined)
+        cb = data,data = key, key = obj, obj = {};
 
       var opts = libs.merge(obj, defaults);
 
