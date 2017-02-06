@@ -3,13 +3,6 @@ crypt.io implements secures browser storage with the
 [SJCL (Stanford Javascript Crypto Libraries)](http://bitwiseshiftleft.github.io/sjcl/)
 crypto library.
 
-##Features:
-* HTML5 localStorage support
-* HTML5 sessionStorage support
-* Cookie support
-* AES encryption support
-* Quota support (4K for cookies and 5MB for HTML5 mechanisms)
-
 ##Options:
 * _passphrase_: `{String}` User supplied passphrase
 * _storage_: `{String}` Storage engine to use; local, session or cookies
