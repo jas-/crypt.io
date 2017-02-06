@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <script type="text/javascript" src="crypt.io/3rd-party/sjcl/sjcl.js"></script>
+        <script type="text/javascript" src="crypt.io/dist/crypt.io.min.js"></script>
+        <script>
+            var storage = cryptio,
+                inventory = [{
+  	                "SKU": "39-48949",
+	                "Price": 618,
+	                "Item": "Snowboard"
+                }, {
+	                "SKU": "99-28128",
+    	            "Price": 78.99,
+	                "Item": "Cleats"
+                }, {
+	                "SKU": "83-38285",
+	                "Price": 3.99,
+	                "Item": "Hockey Puck"
+                }];
+
+            storage.set('inventory', inventory, function(err, results){
+                if (err) throw err;
+                console.log(results);
+            });
+
+            storage.get('inventory', function(err, results){
+                if (err) throw err;
+                console.log(results);
+            });
+        </script>
+    </head>
+</html>
