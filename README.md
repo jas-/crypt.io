@@ -1,4 +1,4 @@
-#crypt.io
+#crypt.io [![Build Status](https://travis-ci.org/jas-/crypt.io.png?branch=master)](https://travis-ci.org/jas-/crypt.io)
 crypt.io implements secures browser storage with the
 [SJCL (Stanford Javascript Crypto Libraries)](http://bitwiseshiftleft.github.io/sjcl/)
 crypto library.
