@@ -29,7 +29,7 @@ var storage = cryptio
 	    "Item": "Hockey Puck"
     }];
 
-storage.set(options, 'inventory', inventory, function(err, results){
+storage.set('inventory', inventory, function(err, results){
   if (err) throw err;
   console.log(results);
 });
@@ -40,7 +40,7 @@ Retrieving data...
 ```javascript
 var storage = cryptio;
 
-storage.get(options, 'inventory', function(err, results){
+storage.get('inventory', function(err, results){
   if (err) throw err;
   console.log(results);
 });
@@ -74,12 +74,14 @@ for his/her passphrase. Here is an example of user input for the passphrase.
 var pass = window.prompt("Please enter password...", "a custom password");
 
 var options = {
-  encrypt: true,
-  passphrase: pass,
-  data: {
-    key: 'some data that is somewhat private'
-  }
+  passphrase: pass
 };
+
+storage.set(options, 'inventory', inventory, function(err, results){
+  if (err) throw err;
+  console.log(results);
+});
+
 ```
 
 ###For the paranoid
@@ -96,12 +98,14 @@ Saving data (please keep in mind that a static value for the salt is not recomme
 var pass = window.prompt("Enter password to protect saved data", "");
 
 var options = {
-  encrypt: true,
   passphrase: sjcl.misc.pbkdf2(pass, "salt", 1000000, 256),
-  data: {
-    key: 'some data that is somewhat private'
-  }
 };
+
+storage.set(options, 'inventory', inventory, function(err, results){
+  if (err) throw err;
+  console.log(results);
+});
+
 ```
 
 ##Warning:
@@ -122,7 +126,7 @@ While this technique is possible, it is typically a low threat
 vector due to the technologies & knowledge necessary to exploit.
 
 ##Requirements:
-* SJCL libraries (optional - https://github.com/bitwiseshiftleft/sjcl)
+* [SJCL libraries (optional)](https://github.com/bitwiseshiftleft/sjcl)
 
 ##Installation:
 Three methods are available for setup and use; using bower, cloning & manual
