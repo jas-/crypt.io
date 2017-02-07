@@ -1,2 +1,2 @@
 before_script: cdgit clone --recursive https://github.com/jas-/crypt.io.git
-script: phantomjs tests/test.js
+script: phantomjs tests/test.html
