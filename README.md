@@ -67,8 +67,10 @@ var options = {
 While providing a transparent method of encryption for objects within
 the client prevents the need for user interaction, in terms of security
 in the event of a same-origin, dom rebinding attack coupled with a man-
-in-the-middle scenario it would be more secure to prompt the user
-for his/her passphrase. Here is an example of user input for the passphrase.
+in-the-middle scenario or a malicious browser add-on it would be more secure
+to prompt the user for his/her passphrase.
+
+Here is an example of user input for the passphrase.
 
 ```javascript
 var pass = window.prompt("Please enter password...", "a custom password");
@@ -89,8 +91,7 @@ Here is a robust example of saving & retrieving data implementing a user
 defined password based on their input while also using key stretching
 techniques to further enhance the security of the key used as well as using
 a tempoary storage option such as sessionStorage for the current authenticated
-session. Of course wrapping this around a TLS/SSL connection is recommended.
-
+session.
 
 Saving data (please keep in mind that a static value for the salt is not recommended)
 
@@ -109,21 +110,9 @@ storage.set(options, 'inventory', inventory, function(err, results){
 ```
 
 ##Warning:
-I feel it is worth noting that while this plugin makes every
-attempt at providing a secure transparent method of saving &
-retieving encrypted data based on unique identifiers retrieved
-from the client browser, it is by no means a replacement for
-a user specifying their own passphrase. See the 'Extra security'
-example for this.
-
-For the reasons behind this notice please research MITM ARP
-poisoning techniques coupled with use of the BeEF injection
-framework. This attack vector as well as browser plug-ins &
-JavaScript scriplets can expose the parameters used to create
-a unique transparent key used by the browser.
-
-While this technique is possible, it is typically a low threat
-vector due to the technologies & knowledge necessary to exploit.
+For the obligitory read regarding Javascript Encryption and the security
+implications please read
+'[NCC Group - Javascript Cryptography Considered Harmful](https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2011/august/javascript-cryptography-considered-harmful/)'
 
 ##Requirements:
 * [SJCL libraries (optional)](https://github.com/bitwiseshiftleft/sjcl)
