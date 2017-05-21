@@ -109,7 +109,6 @@ storage.set(options, 'inventory', inventory, function(err, results){
 
 ```
 
-<<<<<<< HEAD
 ##Warning:
 For the obligitory read regarding Javascript Encryption and the security
 implications please read
