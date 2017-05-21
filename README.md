@@ -109,7 +109,7 @@ storage.set(options, 'inventory', inventory, function(err, results){
 
 ```
 
-##Warning:
+## Warning:
 For the obligitory read regarding Javascript Encryption and the security
 implications please read
 '[NCC Group - Javascript Cryptography Considered Harmful](https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2011/august/javascript-cryptography-considered-harmful/)'
