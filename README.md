@@ -1,16 +1,16 @@
-#crypt.io [![Build Status](https://travis-ci.org/jas-/crypt.io.png?branch=master)](https://travis-ci.org/jas-/crypt.io)
+# crypt.io [![Build Status](https://travis-ci.org/jas-/crypt.io.png?branch=master)](https://travis-ci.org/jas-/crypt.io)
 crypt.io implements secures browser storage with the
 [SJCL (Stanford Javascript Crypto Libraries)](http://bitwiseshiftleft.github.io/sjcl/)
 crypto library.
 
-##Options:
+## Options:
 * _passphrase_: `{String}` User supplied passphrase
 * _storage_: `{String}` Storage engine to use; local, session or cookies
 
-##Examples:
+## Examples:
 Here are a few examples of use to get you started.
 
-###Default use
+### Default use
 Saving data...
 
 ```javascript
@@ -46,7 +46,7 @@ storage.get('inventory', function(err, results){
 });
 ```
 
-###Storage option
+### Storage option
 Want to use a different storage engine like the HTML5 sessionStorage feature?
 
 ```javascript
@@ -63,7 +63,7 @@ var options = {
 };
 ```
 
-###Extra security
+### Extra security
 While providing a transparent method of encryption for objects within
 the client prevents the need for user interaction, in terms of security
 in the event of a same-origin, dom rebinding attack coupled with a man-
@@ -86,7 +86,7 @@ storage.set(options, 'inventory', inventory, function(err, results){
 
 ```
 
-###For the paranoid
+### For the paranoid
 Here is a robust example of saving & retrieving data implementing a user
 defined password based on their input while also using key stretching
 techniques to further enhance the security of the key used as well as using
@@ -109,32 +109,33 @@ storage.set(options, 'inventory', inventory, function(err, results){
 
 ```
 
+<<<<<<< HEAD
 ##Warning:
 For the obligitory read regarding Javascript Encryption and the security
 implications please read
 '[NCC Group - Javascript Cryptography Considered Harmful](https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2011/august/javascript-cryptography-considered-harmful/)'
 
-##Requirements:
+## Requirements:
 * [SJCL libraries (optional)](https://github.com/bitwiseshiftleft/sjcl)
 
-##Installation:
+## Installation:
 Three methods are available for setup and use; using bower, cloning & manual
 
-###Bower
+### Bower
 To setup using bower
 
 ```sh
 %> bower install crypt.io
 ```
 
-###Clone
+### Clone
 To setup using git
 
 ```sh
 %> git clone --recursive https://github.com/jas-/crypt.io.git
 ```
 
-###Manual
+### Manual
 Copy the [crypt.io.min.js](https://github.com/jas-/crypt.io/blob/master/dist/crypt.io.min.js)
 and the [sjcl](https://github.com/bitwiseshiftleft/sjcl) libraries to your web project
 and include them like so.
@@ -144,6 +145,6 @@ and include them like so.
 <script src="/path/to/crypt.io.min.js"></script>
 ```
 
-##Support:
+## Support:
 Found a bug? Want a feature added? General feedback or kudos? Please open
 an issue so I can address it. Thanks!
