@@ -16,17 +16,17 @@ Saving data...
 ```javascript
 var storage = cryptio
   , inventory = [{
-  	  "SKU": "39-48949",
-	    "Price": 618,
-	    "Item": "Snowboard"
+      "SKU": "39-48949",
+      "Price": 618,
+      "Item": "Snowboard"
     }, {
-	    "SKU": "99-28128",
-    	"Price": 78.99,
-	    "Item": "Cleats"
+      "SKU": "99-28128",
+      "Price": 78.99,
+      "Item": "Cleats"
     }, {
-	    "SKU": "83-38285",
-	    "Price": 3.99,
-	    "Item": "Hockey Puck"
+      "SKU": "83-38285",
+      "Price": 3.99,
+      "Item": "Hockey Puck"
     }];
 
 storage.set('inventory', inventory, function(err, results){
@@ -84,6 +84,11 @@ storage.set(options, 'inventory', inventory, function(err, results){
   console.log(results);
 });
 
+storage.get(options, 'inventory', function(err, results){
+  if (err) throw err;
+  console.log(results);
+});
+
 ```
 
 ### For the paranoid
@@ -103,6 +108,11 @@ var options = {
 };
 
 storage.set(options, 'inventory', inventory, function(err, results){
+  if (err) throw err;
+  console.log(results);
+});
+
+storage.get(options, 'inventory', function(err, results){
   if (err) throw err;
   console.log(results);
 });

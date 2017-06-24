@@ -93,9 +93,16 @@
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
-        data = (opts.encrypt) ?
-          sjcl.encrypt(opts.passphrase, storage.fromJSON(data)) :
-          storage.fromJSON(data);
+        if (opts.encrypt) {
+          try {
+            sjcl.encrypt(opts.passphrase, storage.fromJSON(data));
+          } catch(err) {
+            return cb(err);
+          }
+        }
+//        data = (opts.encrypt) ?
+//          sjcl.encrypt(opts.passphrase, storage.fromJSON(data)) :
+//          storage.fromJSON(data);
 
         ret = this[opts.storage] ?
           this[opts.storage].set(key, data) :
@@ -125,7 +132,12 @@
           this[opts.storage].get(key) :
           this.local.get(key);
 
-        ret = sjcl.decrypt(opts.passphrase, ret);
+        try {
+          ret = sjcl.decrypt(opts.passphrase, ret);
+        } catch(err) {
+          cb(err);
+        }
+        
         ret = storage.toJSON(ret);
 
         if (ret) {

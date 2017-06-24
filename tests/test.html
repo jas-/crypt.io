@@ -18,15 +18,108 @@
 	                "Item": "Hockey Puck"
                 }];
 
+            document.write('<b>Testing default use case</b><br/>');
             storage.set('inventory', inventory, function(err, results){
-                if (err) throw err;
-                console.log(results);
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(results+'<br/>');
             });
 
             storage.get('inventory', function(err, results){
-                if (err) throw err;
-                console.log(results);
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(JSON.stringify(results)+'<br/>');
             });
+            
+            document.write('<br/><b>Testing use of sessionStorage option</b><br/>');
+            var options = {
+                storage: "session"
+            }
+
+            storage.set(options, 'inventory', inventory, function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(results+'<br/>');
+            });
+
+            storage.get(options, 'inventory', function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(JSON.stringify(results)+'<br/>');
+            });
+
+            document.write('<br/><b>Testing use of depreciated (fallback) to cookies</b><br/>');
+            var options = {
+                storage: "cookies"
+            }
+
+            storage.set(options, 'inventory', inventory, function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(results+'<br/>');
+            });
+
+            storage.get(options, 'inventory', function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(JSON.stringify(results)+'<br/>');
+            });
+
+            document.write('<br/><b>Testing user provided passphrase</b><br/>');
+            var options = {
+                passphrase: "secret squirrel sauce"
+            }
+
+            storage.set(options, 'inventory', inventory, function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(results+'<br/>');
+            });
+
+            storage.get(options, 'inventory', function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(JSON.stringify(results)+'<br/>');
+            });
+
+/*
+            document.write('<br/><b>Testing user provided passphrase (paranoid example)</b><br/>');
+            var options = {
+                passphrase: sjcl.misc.pbkdf2("secret squirrel sauce", "salt", 1000000, 256)
+            }
+
+            storage.set(options, 'inventory', inventory, function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(results+'<br/>');
+            });
+
+            storage.get(options, 'inventory', function(err, results){
+                if (err) {
+                    document.write(err+'<br/>');
+                    return;
+                }
+                document.write(JSON.stringify(results)+'<br/>');
+            });
+*/
         </script>
     </head>
 </html>
