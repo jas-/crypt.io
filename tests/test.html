@@ -25,8 +25,9 @@
                     return;
                 }
                 document.write(results+'<br/>');
+                document.write(window.localStorage.getItem('inventory')+'<br/>');
             });
-
+            
             storage.get('inventory', function(err, results){
                 if (err) {
                     document.write(err+'<br/>');
@@ -34,7 +35,7 @@
                 }
                 document.write(JSON.stringify(results)+'<br/>');
             });
-            
+
             document.write('<br/><b>Testing use of sessionStorage option</b><br/>');
             var options = {
                 storage: "session"
@@ -46,6 +47,7 @@
                     return;
                 }
                 document.write(results+'<br/>');
+                document.write(window.localStorage.getItem('inventory')+'<br/>');
             });
 
             storage.get(options, 'inventory', function(err, results){
@@ -67,6 +69,7 @@
                     return;
                 }
                 document.write(results+'<br/>');
+                document.write(window.localStorage.getItem('inventory')+'<br/>');
             });
 
             storage.get(options, 'inventory', function(err, results){
@@ -88,6 +91,7 @@
                     return;
                 }
                 document.write(results+'<br/>');
+                document.write(window.localStorage.getItem('inventory')+'<br/>');
             });
 
             storage.get(options, 'inventory', function(err, results){
@@ -101,7 +105,7 @@
 /*
             document.write('<br/><b>Testing user provided passphrase (paranoid example)</b><br/>');
             var options = {
-                passphrase: sjcl.misc.pbkdf2("secret squirrel sauce", "salt", 1000000, 256)
+                passphrase: sjcl.misc.pbkdf2("secret squirrel sauce", sjcl.random.randomWords(2, 1))
             }
 
             storage.set(options, 'inventory', inventory, function(err, results){
@@ -110,6 +114,7 @@
                     return;
                 }
                 document.write(results+'<br/>');
+                document.write(window.localStorage.getItem('inventory')+'<br/>');
             });
 
             storage.get(options, 'inventory', function(err, results){

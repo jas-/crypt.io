@@ -95,14 +95,11 @@
 
         if (opts.encrypt) {
           try {
-            sjcl.encrypt(opts.passphrase, storage.fromJSON(data));
+            data = sjcl.encrypt(opts.passphrase, storage.fromJSON(data));
           } catch(err) {
             return cb(err);
           }
         }
-//        data = (opts.encrypt) ?
-//          sjcl.encrypt(opts.passphrase, storage.fromJSON(data)) :
-//          storage.fromJSON(data);
 
         ret = this[opts.storage] ?
           this[opts.storage].set(key, data) :
@@ -175,6 +172,7 @@
        */
       toJSON: function(obj) {
         var ret;
+console.log(typeof JSON.parse(obj))
         try {
           ret = JSON.parse(obj);
         } catch (e) {
