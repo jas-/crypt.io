@@ -104,7 +104,7 @@ Saving data (please keep in mind that a static value for the salt is not recomme
 var pass = window.prompt("Enter password to protect saved data", "");
 
 var options = {
-  passphrase: sjcl.misc.pbkdf2(pass, "salt", 1000000, 256),
+  passphrase: sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(sjcl.misc.pbkdf2(pass, sjcl.random.randomWords(2), 100000, 512)))
 };
 
 storage.set(options, 'inventory', inventory, function(err, results){
