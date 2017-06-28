@@ -44,6 +44,9 @@
        * @param {Object} opts Plug-in option object
        */
       init: function(opts) {
+        
+        
+        
         opts.passphrase = opts.encrypt ?
           (opts.passphrase || crypto.key(opts)) : false;
       }
@@ -172,7 +175,6 @@
        */
       toJSON: function(obj) {
         var ret;
-console.log(typeof JSON.parse(obj))
         try {
           ret = JSON.parse(obj);
         } catch (e) {
