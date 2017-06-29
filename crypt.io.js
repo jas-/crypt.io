@@ -26,7 +26,6 @@
      * @param {String} storage Storage mechanism (local, session or cookies)
      */
     var defaults = {
-      encrypt: true,
       passphrase: '',
       storage: 'local'
     };
@@ -44,11 +43,7 @@
        * @param {Object} opts Plug-in option object
        */
       init: function(opts) {
-        
-        
-        
-        opts.passphrase = opts.encrypt ?
-          (opts.passphrase || crypto.key(opts)) : false;
+        opts.passphrase = opts.passphrase || (crypto.key(opts.passphrase) || crypto.key());
       }
     };
 
@@ -96,7 +91,7 @@
         if (!storage.quota(opts.storage))
           cb('Browser storage quota has been exceeded.');
 
-        if (opts.encrypt) {
+        if (opts.passphrase) {
           try {
             data = sjcl.encrypt(opts.passphrase, storage.fromJSON(data));
           } catch(err) {
@@ -323,14 +318,16 @@
        * @function key
        * @abstract Prepares key for encryption/decryption routines
        *
+       * @param {String} pass Optional passphrase
+       * 
        * @returns {String}
        */
-      key: function() {
-        var pass = crypto.muid(),
-          salt = crypto.salt(pass);
+      key: function(pass) {
+        pass = pass || this.muid();
 
-        return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(pass, salt,
-          10000, 256));
+        var salt = crypto.salt(pass);
+
+        return sjcl.codec.hex.fromBits(sjcl.misc.pbkdf2(pass, salt));
       },
 
       /**
@@ -341,16 +338,10 @@
        */
       muid: function() {
         var ret = window.navigator.appName +
-          window.navigator.appCodeName +
-          window.navigator.product +
-          window.navigator.productSub +
-          window.navigator.appVersion +
-          window.navigator.buildID +
-          window.navigator.userAgent +
           window.navigator.language +
-          window.navigator.platform +
-          window.navigator.oscpu;
-        return ret.replace(/\s/, '');
+          window.navigator.platform;
+
+        return ret;
       },
 
       /**
@@ -362,31 +353,8 @@
        * @returns {String}
        */
       salt: function(str) {
-        var rec, ret, hash = [],
-          slt = crypto.iv(str);
-
-        hash[0] = sjcl.hash.sha256.hash(str), rec = [], rec = hash[0],
-          ret;
-
-        for (var i = 1; i < 3; i++) {
-          hash[i] = sjcl.hash.sha256.hash(hash[i - 1].concat(slt));
-          ret = rec.concat(hash[i]);
-        }
-
-        return JSON.stringify(sjcl.codec.hex.fromBits(ret));
-      },
-
-      /**
-       * @function iv
-       * @abstract Creates IV based on UID
-       *
-       * @param {String} str Supplied string
-       *
-       * @returns {String}
-       */
-      iv: function(str) {
-        return encodeURI(str.replace(/-/gi, '').substring(16, Math.ceil(
-          16 * str.length) % str.length));
+        return sjcl.codec.base64.fromBits(
+                sjcl.hash.sha256.hash(window.navigator.appName));
       }
     };
 

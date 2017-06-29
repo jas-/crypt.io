@@ -1,7 +1,7 @@
 <html>
     <head>
         <script type="text/javascript" src="../3rd-party/sjcl/sjcl.js"></script>
-        <script type="text/javascript" src="../crypt.io.js"></script>
+        <script type="text/javascript" src="../dist/crypt.io.min.js"></script>
         <script>
             var storage = cryptio,
                 inventory = [{
@@ -106,7 +106,6 @@
             var options = {
                 passphrase: sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(sjcl.misc.pbkdf2("secret squirrel sauce", sjcl.random.randomWords(2), 10000, 512)))
             }
-            console.log(options.passphrase)
 
             storage.set(options, 'inventory', inventory, function(err, results){
                 if (err) {
