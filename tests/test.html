@@ -1,10 +1,10 @@
 <html>
     <head>
         <script type="text/javascript" src="../3rd-party/sjcl/sjcl.js"></script>
-        <script type="text/javascript" src="../dist/crypt.io.min.js"></script>
+        <script type="text/javascript" src="../crypt.io.es6.js"></script>
         <script>
-            var storage = cryptio,
-                inventory = [{
+            let storage = new cryptio
+              , inventory = [{
   	                "SKU": "39-48949",
 	                "Price": 618,
 	                "Item": "Snowboard"
@@ -19,6 +19,7 @@
                 }];
 
             document.write('<b>Testing default use case</b><br/>');
+/*
             storage.set('inventory', inventory, function(err, results){
                 if (err) {
                     document.write(err+'<br/>');
@@ -123,7 +124,7 @@
                 }
                 document.write(JSON.stringify(results)+'<br/>');
             });
-
+*/
         </script>
     </head>
 </html>
