@@ -8,95 +8,116 @@
  */
 'use strict';
 
-export class cryptio {
-  
-  constructor() {
-    this.get = storage.get();
-    this.set = storage.set();
-  }
-  
-}
+let cryptio = (function(){
 
-class setup extends cryptio {
+  class cryptio {
+    constrctor(opts, key, obj, func) {
+      let storage = new storage();
+    }
+  }
   
-}
+  class storage {
+    constrctor(opts) {
+      let cookies = new cookies()
+        , local = new local()
+        , session = new session();
+      
+    }
 
-class storage extends cryptio {
-  quota() {
+    quota() {
     
-  }
+    }
   
-  calculate() {
+    calculate() {
     
-  }
+    }
   
-  getsize() {
+    getsize() {
     
-  }
+    }
   
-  set() {
+    set() {
     
-  }
+    }
   
-  get() {
+    get() {
     
+    }
   }
-}
 
-class cookies extends storage() {
-  set() {
-    
-  }
-  
-  get() {
-    
-  }
-  
-  domain() {
-    
-  }
-}
+  class cookies {
+    constrctor() {
+      let storage = new storage();
+    }
 
-class local extends storage() {
-  set() {
+    set() {
     
-  }
+    }
   
-  get() {
+    get() {
     
+    }
+  
+    domain() {
+    
+    }
   }
-}
 
-class session extends storage() {
-  set() {
-    
-  }
-  
-  get() {
-    
-  }
-}
+  class local {
+    constrctor() {
+      
+    }
 
-class crypto extends cryptio() {
-  constructor() {
+    set() {
     
-  }
+    }
   
-  derive() {
+    get() {
     
+    }
   }
-  
-  guid() {
-    
-  }
-  
-  salt() {
-    
-  }
-}
 
-class libs extends cryptio() {
-  merge() {
+  class session {
+    constrctor() {
+      
+    }
+
+    set() {
     
+    }
+  
+    get() {
+    
+    }
   }
-}
+
+  class crypto {
+    constructor() {
+    
+    }
+  
+    derive() {
+    
+    }
+  
+    guid() {
+    
+    }
+  
+    salt() {
+    
+    }
+  }
+
+  class libs {
+    constrctor() {
+      
+    }
+
+    merge() {
+    
+    }
+  }
+
+  return cryptio;
+})();
