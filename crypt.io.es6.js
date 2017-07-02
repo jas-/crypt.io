@@ -36,13 +36,24 @@ let cryptio = (function() {
     }
 
     get(key, cb) {
-      return this._crypto.decrypt(this._opts.passphrase,
-        this._storage.get(key, cb));
+      let ct = this._storage.get(key, cb),
+          pt = this._crypto.decrypt(this._opts.passphrase, ct['ct']),
+          valid = this._crypto.verify(this._opts.passphrase, ct['signature'],
+            pt);
+
+      if (!valid)
+        cb('Original signed data has been tampered with!');
+        
+      cb(null, pt);
     }
 
     set(key, obj, cb) {
-      return this._storage.set(key,
-        this._crypto.encrypt(this._opts.passphrase, obj), cb);
+      let ct = {
+        signature: this._crypto.signature(this._opts, obj),
+        ct: this._crypt.encrypt(this._opts.passphrase, obj)
+      }
+
+      cb(null, this._storage.set(key, ct, cb));
     }
   }
 
@@ -159,7 +170,7 @@ let cryptio = (function() {
     constructor() {
       const _engine = window.crypto || window.msCrypto,
             machine = window.navigator,
-            libs = new libs();
+            _libs = new libs();
     }
 
     muid() {
@@ -179,7 +190,7 @@ let cryptio = (function() {
       },
       false,
       ["encrypt", "decrypt"]).then(function(key) {
-        return key;
+        return this._libs.encodeUTF8(key);
       }).catch(function(err) {
         throw 'Error generating key; ' + err;
       });
@@ -191,9 +202,33 @@ let cryptio = (function() {
         name: opts.crypto.hashing,
       },
       this.libs.encodeUTF8(str)).then(function(hash) {
-        return this.libs.decodeUTF8(hash);
+        return this._libs.decodeUTF8(hash);
       }).catch(function(err) {
-        throw 'Error occurred hashing string' + err;
+        throw 'Error occurred hashing string; ' + err;
+      });
+    }
+    
+    sign(opts, data) {
+      this._engine.subtle.sign({
+        name: "HMAC",
+      },
+      opts.crypto.passphrase,
+      this._libs.decodeUTF8(data)).then(function(signature) {
+        return this._libs.encodeUTF8(signature);
+      }).catch(function(err) {
+        throw 'Error occurred generating signature; ' + err;
+      });
+    }
+    
+    verify(opts, data) {
+      this._engine.subtle.verify({
+        name: "HMAC",
+      },
+      opts.passphrase,
+      this._libs.decodeUTF8(data)).then(function(isvalid) {
+        return isvalid;
+      }).catch(function(err) {
+        throw 'Error occurred validating signature ' + err;
       });
     }
   }
