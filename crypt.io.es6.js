@@ -15,10 +15,10 @@ let cryptio = (function() {
     passphrase: ''
     , storage: 'local'
     , crypto: {
-      hashing: 'SHA-512'
-      , keytype: 'AES-GCM'
-      , length: 256
-      , output: 'base64'
+      length: 256,
+      hashing: 'SHA-512',
+      keytype: 'AES-GCM',
+      output: 'base64'
     }
   };
 
@@ -39,22 +39,44 @@ let cryptio = (function() {
 
   class storage {
     constrctor(opts) {
-      let cookies = new cookies()
-        , local = new local()
-        , session = new session();
+      let local = new local()
+        , session = new session()
+        , cookies = new cookies();
 
     }
 
     quota() {
+      const max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4
+          , cur = libs.total(storage)
+          , total = max - cur;
 
+      return total > 0;
     }
 
     calculate() {
+      let current = ''
+        , engine = window.storage + 'Storage';
 
+      for (const key in engine) {
+        if (engine.hasOwnProperty(key)) {
+          current += engine[key];
+        }
+      }
+
+      return current ? 3 + ((current.length * 16) / (8 * 1024)) : 0;
     }
 
-    getsize() {
+    getsize(obj) {
+      let n = 0;
 
+      if (/object/.test(typeof(obj))) {
+        for (const i in obj) {
+          if (obj.hasOwnProperty(obj[i])) n++;
+        }
+      } else if (/array/.test(typeof(obj))) {
+        n = obj.length;
+      }
+      return n;
     }
 
     set() {
