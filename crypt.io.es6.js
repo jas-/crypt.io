@@ -37,7 +37,7 @@ let cryptio = (function() {
 
     get(key, cb) {
       let ct = this._storage.get(key, cb),
-          pt = this._crypto.decrypt(this._opts.passphrase, ct['ct']),
+          pt = this._crypto.decrypt(this._opts, ct),
           valid = this._crypto.verify(this._opts.passphrase, ct['signature'],
             pt);
 
@@ -48,10 +48,14 @@ let cryptio = (function() {
     }
 
     set(key, obj, cb) {
-      let ct = {
-        signature: this._crypto.signature(this._opts, obj),
-        ct: this._crypt.encrypt(this._opts.passphrase, obj)
-      }
+      let iv = this._crypto.iv(),
+          salt = this._crypto.muid(),
+          ct = {
+            iv: iv,
+            salt: salt,
+            signature: this._crypto.signature(this._opts, obj),
+            ct: this._crypt.encrypt(this._opts.passphrase, iv, salt, obj)
+          }
 
       cb(null, this._storage.set(key, ct, cb));
     }
@@ -229,6 +233,36 @@ let cryptio = (function() {
         return isvalid;
       }).catch(function(err) {
         throw 'Error occurred validating signature ' + err;
+      });
+    }
+    
+    encrypt(opts, iv, salt, data) {
+      this._engine.subtle.encrypt({
+        name: opts.crypto.keytype,
+        iv: iv,
+        additionalData: salt,
+        tagLength: opts.length
+      },
+      opts.passphrase,
+      this._libs.decodeUTF8(data)).then(function(ct) {
+        return this._libs.encodeUTF8(ct);
+      }).catch(function(err) {
+        throw 'Error occurred encrypting data; ' + err;
+      });
+    }
+
+    decrypt(opts, data) {
+      this._engine.subtle.encrypt({
+        name: opts.crypto.keytype,
+        iv: data.iv,
+        additionalData: data.salt,
+        tagLength: opts.length
+      },
+      opts.passphrase,
+      this._libs.encodeUTF8(data)).then(function(pt) {
+        return this._libs.deccodeUTF8(pt);
+      }).catch(function(err) {
+        throw 'Error occurred decrypting data; ' + err;
       });
     }
   }
