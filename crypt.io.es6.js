@@ -12,50 +12,56 @@
 let cryptio = (function() {
 
   const defaults = {
-    passphrase: ''
-    , storage: 'local'
-    , crypto: {
-      length: 256,
+    passphrase: '',
+    storage: 'local',
+    crypto: {
+      length:  256,
       hashing: 'SHA-512',
       keytype: 'AES-GCM',
-      output: 'base64'
+      output:  'base64'
     }
   };
 
 
   class cryptio {
-    constrctor(opts, key, obj, func) {
-      let storage = new storage()
-        , crypto = new crypto()
-        , libs = new libs();
 
-      opts = libs.merge(defaults, opts);
+    constrctor(opts) {
 
-      if (!opts.passphrase)
-        opts.passphrase = crypto.key(opts);
+      let _storage = new storage(opts),
+          _crypto = new crypto(opts),
+          _libs = new libs(opts),
+          _opts = _libs.merge(defaults, opts);
+
+      _opts.passphrase = _crypto.key(_opts);
+    }
+
+    get(key, cb) {
+      return this._crypto.decrypt(this._opts.passphrase,
+        this._storage.get(key, cb));
+    }
+
+    set(key, obj, cb) {
+      return this._storage.set(key,
+        this._crypto.encrypt(this._opts.passphrase, obj), cb);
     }
   }
 
 
   class storage {
-    constrctor(opts) {
-      let local = new local()
-        , session = new session()
-        , cookies = new cookies();
 
-    }
+    quota(storage) {
 
-    quota() {
-      const max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4
-          , cur = libs.total(storage)
-          , total = max - cur;
+      const max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4,
+            cur = libs.total(storage),
+            total = max - cur;
 
       return total > 0;
     }
 
-    calculate() {
-      let current = ''
-        , engine = window.storage + 'Storage';
+    calculate(storage) {
+
+      let current = '',
+          engine = window.storage + 'Storage';
 
       for (const key in engine) {
         if (engine.hasOwnProperty(key)) {
@@ -67,6 +73,7 @@ let cryptio = (function() {
     }
 
     getsize(obj) {
+
       let n = 0;
 
       if (/object/.test(typeof(obj))) {
@@ -90,9 +97,6 @@ let cryptio = (function() {
 
 
   class cookies {
-    constrctor() {
-      let storage = new storage();
-    }
 
     set() {
 
@@ -109,42 +113,53 @@ let cryptio = (function() {
 
 
   class local {
-    constrctor() {
 
+    set(key, obj) {
+      try {
+        window.localStorage.setItem(key, obj);
+        return true;
+      } catch (e) {
+        return false;
+      }
     }
 
-    set() {
-
-    }
-
-    get() {
-
+    get(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (e) {
+        return false;
+      }
     }
   }
 
 
   class session {
-    constrctor() {
 
+    set(key, obj) {
+      try {
+        window.sessionStorage.setItem(key, obj);
+        return true;
+      } catch (e) {
+        return false;
+      }
     }
 
-    set() {
-
-    }
-
-    get() {
-
+    get(key) {
+      try {
+        return window.sessionStorage.getItem(key);
+      } catch (e) {
+        return false;
+      }
     }
   }
 
 
   class crypto {
+
     constructor() {
-      const crypto = window.crypto || window.msCrypto
-        , machine = window.navigator
-        , libs = new libs();
-
-
+      const _engine = window.crypto || window.msCrypto,
+            machine = window.navigator,
+            libs = new libs();
     }
 
     muid() {
@@ -153,11 +168,12 @@ let cryptio = (function() {
     }
 
     iv() {
-      return this.crypto.getRandomValues(new Uint8Array(12));
+      return this._engine.getRandomValues(new Uint8Array(12));
     }
 
     generate(opts) {
-      this.crypto.subtle.generateKey({
+
+      this._engine.subtle.generateKey({
         name: opts.crypto.keytype,
         length: opts.crypto.length,
       },
@@ -170,7 +186,8 @@ let cryptio = (function() {
     }
 
     hash(opts, str) {
-      this.crypto.subtle.digest({
+
+      this._engine.subtle.digest({
         name: opts.crypto.hashing,
       },
       this.libs.encodeUTF8(str)).then(function(hash) {
@@ -185,6 +202,7 @@ let cryptio = (function() {
   class libs {
 
     merge(defaults, obj) {
+
       defaults = defaults || {};
 
       for (const item in defaults) {
@@ -199,8 +217,9 @@ let cryptio = (function() {
     }
 
     encodeUTF8(str) {
-      let i = 0
-        , bytes = new Uint8Array(str.length * 4);
+
+      let i = 0,
+          bytes = new Uint8Array(str.length * 4);
 
       for (const ci = 0; ci != str.length; ci++) {
         let c = str.charCodeAt(ci);
@@ -239,9 +258,8 @@ let cryptio = (function() {
     }
 
     decodeUTF8(bytes) {
-      let s = ''
-        , i = 0;
-
+      let s = '',
+          i = 0;
 
       while (i < bytes.length) {
         let c = bytes[i++];
