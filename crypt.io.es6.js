@@ -11,28 +11,53 @@
 
 let cryptio = (function() {
 
+
   const defaults = {
-    passphrase: '',
+    passphrase: null,
     storage: 'local',
     crypto: {
       length:  256,
       hashing: 'SHA-512',
-      keytype: 'AES-GCM',
-      output:  'base64'
+      keytype: 'AES-GCM'
     }
   };
 
 
   class cryptio {
 
-    constrctor(opts) {
+    constructor(opts) {
+      let obj = this,
+          iv = null,
+          muid = null;
 
-      let _storage = new storage(opts),
-          _crypto = new crypto(opts),
-          _libs = new libs(opts),
-          _opts = _libs.merge(defaults, opts);
+      obj._libs = new libs(opts);
+      obj._opts = obj._libs.merge(defaults, opts);
 
-      _opts.passphrase = _crypto.key(_opts);
+      obj._storage = new storage(opts);
+
+      obj._crypto = new crypt(opts);
+
+      obj._opts.crypto.iv = obj._crypto.iv();
+      muid = obj._crypto.muid(obj._opts)
+
+      obj._crypto.hash(obj._opts, muid, function(err, salt) {
+        if (err) throw err;
+        obj._opts.crypto.salt = salt;
+      });
+
+      if (!obj._opts.passphrase) {
+        obj._crypto.generate(obj._opts, function genkey(err, key) {
+          if (err) throw err;
+          obj._opts.passphrase = key;
+        });
+      } else {
+        obj._crypto.importkey(obj._opts, obj._opts.passphrase, function impkey(err, key) {
+          if(err) throw err;
+          obj._opts.passphrase = key;
+        });
+      }
+
+      return obj;
     }
 
     get(key, cb) {
@@ -48,16 +73,26 @@ let cryptio = (function() {
     }
 
     set(key, obj, cb) {
-      let iv = this._crypto.iv(),
-          salt = this._crypto.muid(),
-          ct = {
-            iv: iv,
-            salt: salt,
-            signature: this._crypto.signature(this._opts, obj),
-            ct: this._crypt.encrypt(this._opts.passphrase, iv, salt, obj)
-          }
+      let ct = {
+        iv: this._opts.crypto.iv,
+        salt: this._opts.crypto.salt,
+        signature: null,
+        ct: null
+      };
 
-      cb(null, this._storage.set(key, ct, cb));
+      this._crypto.signature(this._opts, obj, function(err, sig) {
+        if (err) throw err;
+        
+        ct.sig = sig;
+      })
+
+      this._crypto.encrypt(this._opts, ct.iv, ct.salt, obj, function(err, ct) {
+        if (err) throw err;
+        
+        ct.ct = ct;
+      });
+
+      //this._storage.set(key, ct, cb);
     }
   }
 
@@ -65,7 +100,6 @@ let cryptio = (function() {
   class storage {
 
     quota(storage) {
-
       const max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4,
             cur = libs.total(storage),
             total = max - cur;
@@ -111,7 +145,7 @@ let cryptio = (function() {
   }
 
 
-  class cookies {
+  class cookies extends storage {
 
     set() {
 
@@ -169,74 +203,122 @@ let cryptio = (function() {
   }
 
 
-  class crypto {
+  class crypt {
 
-    constructor() {
-      const _engine = window.crypto || window.msCrypto,
-            machine = window.navigator,
-            _libs = new libs();
+    constructor(opts) {
+      this._libs = new libs(opts);
+      this.machine = window.navigator;
+      this._engine = window.crypto || window.msCrypto;
     }
 
-    muid() {
-      return this.hash(this.machine.appName + this.machine.language +
-        this.machine.appVersion);
+    muid(opts) {
+      return this.machine.appCodeName + this.machine.appName +
+        this.machine.language + this.machine.product + this.machine.vendor;
     }
 
     iv() {
       return this._engine.getRandomValues(new Uint8Array(12));
     }
 
-    generate(opts) {
+    importkey(opts, cb) {
+      const _libs = this._libs,
+            _for = [
+              "encrypt",
+              "decrypt"
+            ];
+            
+      let pass = null,
+          pkey = null,
+          key = null;
 
-      this._engine.subtle.generateKey({
-        name: opts.crypto.keytype,
-        length: opts.crypto.length,
-      },
-      false,
-      ["encrypt", "decrypt"]).then(function(key) {
-        return this._libs.encodeUTF8(key);
-      }).catch(function(err) {
-        throw 'Error generating key; ' + err;
+      this.hash(opts, opts.passphrase, function hash(err, hash) {
+        if (err) throw err;
+        pass = hash;
       });
+
+      pkey = this._engine.subtle.importKey("raw", _libs.toarraybuffer(opts.passphrase),
+        {name: opts.crypto.keytype}, false, _for);
+      
+      pkey.then(function importkey(value) {
+        key = value;
+      });
+      
+      pkey.catch(function (err) {
+        cb('Error occurred importing key; ' + err);
+      });
+      
+      cb(null, key);
+    }
+    
+    generate(opts, cb) {
+      const _libs = this._libs,
+            _opts = {
+              name: opts.crypto.keytype,
+              length: opts.crypto.length
+            },
+            _for = [
+              "encrypt",
+              "decrypt"
+            ];
+
+      let _pkey = null,
+          _key = null;
+
+      _pkey = this._engine.subtle.generateKey(_opts, false, _for);
+      
+      _pkey.then(function(key) {
+        _key = key;
+      });
+
+      _pkey.catch(function(err) {
+        cb('Error generating key; ' + err);
+      });
+      
+      cb(null, _libs.toarraybuffer(_key));
     }
 
-    hash(opts, str) {
+    hash(opts, str, cb) {
+      const _libs = this._libs;
 
       this._engine.subtle.digest({
         name: opts.crypto.hashing,
       },
-      this.libs.encodeUTF8(str)).then(function(hash) {
-        return this._libs.decodeUTF8(hash);
+      _libs.toarraybuffer(str)).then(function(hash) {
+        cb(null, _libs.toarraybuffer(hash));
       }).catch(function(err) {
-        throw 'Error occurred hashing string; ' + err;
+        cb('Error occurred hashing string; ' + err);
       });
     }
     
-    sign(opts, data) {
+    signature(opts, data, cb) {
+      const _libs = this._libs;
+
       this._engine.subtle.sign({
         name: "HMAC",
       },
-      opts.crypto.passphrase,
-      this._libs.decodeUTF8(data)).then(function(signature) {
-        return this._libs.encodeUTF8(signature);
+      opts.passphrase,
+      this._libs.toarraybuffer(data)).then(function(signature) {
+        cb(null, _libs.toarraybuffer(signature));
       }).catch(function(err) {
-        throw 'Error occurred generating signature; ' + err;
+        cb('Error occurred generating signature; ' + err);
       });
     }
     
-    verify(opts, data) {
+    verify(opts, data, cb) {
       this._engine.subtle.verify({
         name: "HMAC",
       },
       opts.passphrase,
-      this._libs.decodeUTF8(data)).then(function(isvalid) {
-        return isvalid;
+      this._libs.toarraybuffer(data)).then(function(isvalid) {
+        cb(null, isvalid);
       }).catch(function(err) {
-        throw 'Error occurred validating signature ' + err;
+        cb('Error occurred validating signature ' + err);
       });
     }
     
-    encrypt(opts, iv, salt, data) {
+    encrypt(opts, iv, salt, data, cb) {
+      const _libs = this._libs;
+
       this._engine.subtle.encrypt({
         name: opts.crypto.keytype,
         iv: iv,
@@ -244,14 +326,16 @@ let cryptio = (function() {
         tagLength: opts.length
       },
       opts.passphrase,
-      this._libs.decodeUTF8(data)).then(function(ct) {
-        return this._libs.encodeUTF8(ct);
+      this._libs.toarraybuffer(data)).then(function(ct) {
+        cb(null, _libs.toarraybuffer(ct));
       }).catch(function(err) {
-        throw 'Error occurred encrypting data; ' + err;
+        cb('Error occurred encrypting data; ' + err);
       });
     }
 
-    decrypt(opts, data) {
+    decrypt(opts, data, cb) {
+      const _libs = this._libs;
+
       this._engine.subtle.encrypt({
         name: opts.crypto.keytype,
         iv: data.iv,
@@ -259,10 +343,10 @@ let cryptio = (function() {
         tagLength: opts.length
       },
       opts.passphrase,
-      this._libs.encodeUTF8(data)).then(function(pt) {
-        return this._libs.deccodeUTF8(pt);
+      this._libs.toarraybuffer(data)).then(function(pt) {
+        cb(null, _libs.fromarraybuffer(pt));
       }).catch(function(err) {
-        throw 'Error occurred decrypting data; ' + err;
+        cb('Error occurred decrypting data; ' + err);
       });
     }
   }
@@ -270,13 +354,13 @@ let cryptio = (function() {
 
   class libs {
 
-    merge(defaults, obj) {
+    merge(obj, defaults) {
 
-      defaults = defaults || {};
+      obj = obj || {};
 
-      for (const item in defaults) {
+      for (let item in defaults) {
         if (defaults.hasOwnProperty(item)) {
-          obj[item] = (/object/.test(typeof(defaults[item]))) ?
+          obj[item] = (typeof defaults[item] == 'object') ?
             this.merge(obj[item], defaults[item]) : defaults[item];
         }
         obj[item] = defaults[item];
@@ -285,94 +369,21 @@ let cryptio = (function() {
       return obj;
     }
 
-    encodeUTF8(str) {
-
-      let i = 0,
-          bytes = new Uint8Array(str.length * 4);
-
-      for (const ci = 0; ci != str.length; ci++) {
-        let c = str.charCodeAt(ci);
-
-        if (c < 128) {
-          bytes[i++] = c;
-          continue;
-        }
-
-        if (c < 2048) {
-          bytes[i++] = c >> 6 | 192;
-        } else {
-          if (c > 0xd7ff && c < 0xdc00) {
-
-            if (++ci == str.length)
-              throw 'UTF-8 encode: incomplete surrogate pair';
-
-            let c2 = str.charCodeAt(ci);
-
-            if (c2 < 0xdc00 || c2 > 0xdfff)
-              throw 'UTF-8 encode: second char code 0x' + c2.toString(16) +
-                ' at index ' + ci + ' in surrogate pair out of range';
-
-            c = 0x10000 + ((c & 0x03ff) << 10) + (c2 & 0x03ff);
-            bytes[i++] = c >> 18 | 240;
-            bytes[i++] = c >> 12 & 63 | 128;
-          } else { // c <= 0xffff
-            bytes[i++] = c >> 12 | 224;
-          }
-          bytes[i++] = c >> 6 & 63 | 128;
-        }
-        bytes[i++] = c & 63 | 128;
+    toarraybuffer(str) {
+      if (typeof str != 'string')
+        return str;
+      
+      let buf = new ArrayBuffer(str.length * 2),
+          bufView = new Uint16Array(buf);
+          
+      for (let i=0, strLen=str.length; i<strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
       }
-
-      return bytes.subarray(0, i);
+      return buf;
     }
-
-    decodeUTF8(bytes) {
-      let s = '',
-          i = 0;
-
-      while (i < bytes.length) {
-        let c = bytes[i++];
-
-        if (c > 127) {
-          if (c > 191 && c < 224) {
-
-            if (i >= bytes.length)
-              throw 'UTF-8 decode: incomplete 2-byte sequence';
-
-            c = (c & 31) << 6 | bytes[i] & 63;
-          } else if (c > 223 && c < 240) {
-
-            if (i + 1 >= bytes.length)
-              throw 'UTF-8 decode: incomplete 3-byte sequence';
-
-            c = (c & 15) << 12 | (bytes[i] & 63) << 6 | bytes[++i] & 63;
-          } else if (c > 239 && c < 248) {
-
-            if (i + 2 >= bytes.length)
-              throw 'UTF-8 decode: incomplete 4-byte sequence';
-
-            c = (c & 7) << 18 | (bytes[i] & 63) << 12 | (bytes[++i] & 63) <<
-              6 | bytes[++i] & 63;
-          } else {
-            throw 'UTF-8 decode: unknown multibyte start 0x' + c.toString(
-              16) + ' at index ' + (i - 1);
-          }
-          ++i;
-        }
-
-        if (c <= 0xffff) {
-          s += String.fromCharCode(c);
-
-        } else if (c <= 0x10ffff) {
-          c -= 0x10000;
-          s += String.fromCharCode(c >> 10 | 0xd800)
-          s += String.fromCharCode(c & 0x3FF | 0xdc00)
-        } else {
-          throw 'UTF-8 decode: code point 0x' + c.toString(16) +
-            ' exceeds UTF-16 reach';
-        }
-      }
-      return s;
+    
+    fromarraybuffer(buf) {
+      return String.fromCharCode.apply(null, new Uint16Array(buf));
     }
   }
 
