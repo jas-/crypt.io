@@ -11,12 +11,12 @@
 
 let cryptio = (function() {
 
-
   const defaults = {
+    debug: true,
     passphrase: null,
     storage: 'local',
     crypto: {
-      length:  256,
+      keysize:  256,
       hashing: 'SHA-512',
       keytype: 'AES-GCM'
     }
@@ -26,38 +26,17 @@ let cryptio = (function() {
   class cryptio {
 
     constructor(opts) {
-      let obj = this,
-          iv = null,
-          muid = null;
+      this._libs = new libs(opts);
+      this._opts = this._libs.merge(defaults, opts);
 
-      obj._libs = new libs(opts);
-      obj._opts = obj._libs.merge(defaults, opts);
+      this._storage = new storage(opts);
 
-      obj._storage = new storage(opts);
-
-      obj._crypto = new crypt(opts);
-
-      obj._opts.crypto.iv = obj._crypto.iv();
-      muid = obj._crypto.muid(obj._opts)
-
-      obj._crypto.hash(obj._opts, muid, function(err, salt) {
-        if (err) throw err;
-        obj._opts.crypto.salt = salt;
-      });
-
-      if (!obj._opts.passphrase) {
-        obj._crypto.generate(obj._opts, function genkey(err, key) {
-          if (err) throw err;
-          obj._opts.passphrase = key;
-        });
-      } else {
-        obj._crypto.importkey(obj._opts, obj._opts.passphrase, function impkey(err, key) {
-          if(err) throw err;
-          obj._opts.passphrase = key;
-        });
-      }
-
-      return obj;
+      this._crypto = new crypt(opts);
+      this._opts.crypto.iv = this._crypto.iv();
+      this._opts.crypto.salt = this._libs.toarraybuffer(this._crypto.muid());
+      
+      if (opts.debug)
+        console.log(opts);
     }
 
     get(key, cb) {
@@ -73,26 +52,41 @@ let cryptio = (function() {
     }
 
     set(key, obj, cb) {
-      let ct = {
-        iv: this._opts.crypto.iv,
-        salt: this._opts.crypto.salt,
-        signature: null,
-        ct: null
-      };
-
-      this._crypto.signature(this._opts, obj, function(err, sig) {
+      let _obj = this;
+      
+      if (!_obj._opts.passphrase)
+        _obj._opts.passphrase = _obj._crypto.muid();
+      
+      if (_obj._opts.debug)
+        console.log(_obj._opts.passphrase);
+      
+      _obj._crypto.hash(_obj._opts, _obj._opts.passphrase, function(err, hash) {
         if (err) throw err;
-        
-        ct.sig = sig;
-      })
 
-      this._crypto.encrypt(this._opts, ct.iv, ct.salt, obj, function(err, ct) {
-        if (err) throw err;
-        
-        ct.ct = ct;
+        if (_obj._opts.debug)
+          console.log(hash);
+
+        _obj._crypto.derivekey(_obj._opts, hash, function(derivedErr, key) {
+          if (derivedErr) throw derivedErr;
+
+          if (_obj._opts.debug)
+            console.log(key);
+
+          _obj._crypto.signature(_obj._opts, key, obj, function(sigErr, sig) {
+            if (sigErr) throw sigErr;
+            
+            obj.signature = sig;
+            obj.iv = _obj._opts.crypto.iv;
+            obj.salt = _obj._opts.crypto.salt;
+            
+            _obj._crypto.encrypt(_obj._opts, obj, function encrypt(err, ct) {
+              if (err) throw err;
+
+              
+            });
+          });
+        });
       });
-
-      //this._storage.set(key, ct, cb);
     }
   }
 
@@ -211,7 +205,7 @@ let cryptio = (function() {
       this._engine = window.crypto || window.msCrypto;
     }
 
-    muid(opts) {
+    muid() {
       return this.machine.appCodeName + this.machine.appName +
         this.machine.language + this.machine.product + this.machine.vendor;
     }
@@ -220,87 +214,130 @@ let cryptio = (function() {
       return this._engine.getRandomValues(new Uint8Array(12));
     }
 
-    importkey(opts, cb) {
+    derivekey(opts, key, cb) {
       const _libs = this._libs,
+            _engine = this._engine,
+            _opts = {
+              name: 'PBKDF2'
+            },
             _for = [
+              "deriveKey"
+            ],
+            _keyopts = {
+              name: 'PBKDF2',
+              iterations: 20000,
+              salt: _libs.toarraybuffer(opts.crypto.salt),
+              hash: opts.crypto.hashing
+            },
+            _keycrypto = {
+              name: opts.crypto.keytype,
+              length: opts.crypto.keysize
+            },
+            _keyfor = [
               "encrypt",
               "decrypt"
             ];
-            
-      let pass = null,
-          pkey = null,
-          key = null;
 
-      this.hash(opts, opts.passphrase, function hash(err, hash) {
-        if (err) throw err;
-        pass = hash;
-      });
+      let pkey = _engine.subtle.importKey("raw", key, _opts, false, _for);
 
-      pkey = this._engine.subtle.importKey("raw", _libs.toarraybuffer(opts.passphrase),
-        {name: opts.crypto.keytype}, false, _for);
+      pkey.then(function imported(key) {
+        let pkey = _engine.subtle.deriveKey(_keyopts, key, _keycrypto, true,
+          _keyfor);
       
-      pkey.then(function importkey(value) {
-        key = value;
+        pkey.then(function derived(key) {
+          let pexport = _engine.subtle.exportKey("raw", key);
+          
+          pexport.then(function exported(key) {
+            cb(null, key);
+          });
+          
+          pexport.catch(function exportedErr(err) {
+            cb(err);
+          });
+        });
+        
+        pkey.catch(function derivedErr(err) {
+          cb(err);
+        });
       });
       
-      pkey.catch(function (err) {
+      pkey.catch(function importedErr(err) {
         cb('Error occurred importing key; ' + err);
       });
-      
-      cb(null, key);
     }
     
     generate(opts, cb) {
       const _libs = this._libs,
             _opts = {
               name: opts.crypto.keytype,
-              length: opts.crypto.length
+              length: opts.crypto.keylength
             },
             _for = [
               "encrypt",
               "decrypt"
             ];
 
-      let _pkey = null,
-          _key = null;
+      let _pkey = null;
 
-      _pkey = this._engine.subtle.generateKey(_opts, false, _for);
+      _pkey = this._engine.subtle.generateKey(_opts, true, _for);
       
-      _pkey.then(function(key) {
-        _key = key;
+      _pkey.then(function generated(key) {
+        cb(null, this._engine.subtle.exportKey("raw", key));
       });
 
-      _pkey.catch(function(err) {
+      _pkey.catch(function generatedErr(err) {
         cb('Error generating key; ' + err);
       });
-      
-      cb(null, _libs.toarraybuffer(_key));
     }
 
     hash(opts, str, cb) {
-      const _libs = this._libs;
+      const _libs = this._libs,
+            _opts = {
+              name: opts.crypto.hashing
+            };
+      
+      let phash = this._engine.subtle.digest(_opts, _libs.toarraybuffer(str));
 
-      this._engine.subtle.digest({
-        name: opts.crypto.hashing,
-      },
-      _libs.toarraybuffer(str)).then(function(hash) {
+      phash.then(function hashed(hash) {
         cb(null, _libs.toarraybuffer(hash));
-      }).catch(function(err) {
+      });
+      
+      phash.catch(function hashedErr(err) {
         cb('Error occurred hashing string; ' + err);
       });
     }
     
-    signature(opts, data, cb) {
-      const _libs = this._libs;
+    signature(opts, key, data, cb) {
+      const _libs = this._libs,
+            _engine = this._engine,
+            _opts = {
+              name: opts.crypto.keytype
+            },
+            _for = [
+              "encrypt",
+              "decrypt"
+            ],
+            _sigopts = {
+              name: 'HMAC'
+            };
 
-      this._engine.subtle.sign({
-        name: "HMAC",
-      },
-      opts.passphrase,
-      this._libs.toarraybuffer(data)).then(function(signature) {
-        cb(null, _libs.toarraybuffer(signature));
-      }).catch(function(err) {
-        cb('Error occurred generating signature; ' + err);
+      let pkey = _engine.subtle.importKey("raw", key, _opts, false, _for);
+
+      pkey.then(function imported(sigkey) {
+        let signingkey = _libs.toarraybuffer(sigkey);
+        let psig = _engine.subtle.sign(_sigopts, signingkey, data);
+        
+        psig.then(function signed(signature) {
+          cb(null, _libs.toarraybuffer(signature));
+        });
+      
+        psig.catch(function signedErr(err) {
+          cb('Error occurred generating signature; ' + err);
+        });
+      });
+      
+      pkey.catch(function importedErr(err) {
+        cb('Error occurred importing key; ' + err);
       });
     }
     
@@ -316,16 +353,16 @@ let cryptio = (function() {
       });
     }
     
-    encrypt(opts, iv, salt, data, cb) {
+    encrypt(opts, key, data, cb) {
       const _libs = this._libs;
 
       this._engine.subtle.encrypt({
         name: opts.crypto.keytype,
-        iv: iv,
-        additionalData: salt,
+        iv: opts.crypto.iv,
+        additionalData: opts.crypto.salt,
         tagLength: opts.length
       },
-      opts.passphrase,
+      key,
       this._libs.toarraybuffer(data)).then(function(ct) {
         cb(null, _libs.toarraybuffer(ct));
       }).catch(function(err) {
@@ -340,7 +377,7 @@ let cryptio = (function() {
         name: opts.crypto.keytype,
         iv: data.iv,
         additionalData: data.salt,
-        tagLength: opts.length
+        tagLength: opts.crypt.keylength
       },
       opts.passphrase,
       this._libs.toarraybuffer(data)).then(function(pt) {
