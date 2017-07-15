@@ -22,7 +22,10 @@
                 }];
 
             document.write('<b>Testing default use case</b><br/>');
-            storage.set('inventory', inventory);
+            storage.set('inventory', inventory, function setdata(err, ret) {
+                if (err) throw err;
+                console.log(ret);
+            });
 /*
             storage.set('inventory', inventory, function(err, results){
                 if (err) {
