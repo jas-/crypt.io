@@ -36,7 +36,7 @@ let cryptio = (function() {
 
       this._crypto = new crypt(opts);
       this._opts.crypto.iv = this._crypto.iv();
-      this._opts.crypto.salt = this._libs.toarraybuffer(this._crypto.muid());
+      this._opts.crypto.salt = this._libs.encode(this._crypto.muid());
       
       if (this._opts.debug)
         console.log(this._opts);
@@ -83,7 +83,7 @@ let cryptio = (function() {
             console.log(_obj._opts.passphrase);
           }
 
-          _obj._crypto.hash(_obj._opts, _obj._libs.toarraybuffer(obj),
+          _obj._crypto.hash(_obj._opts, _obj._libs.encode(obj),
                             function(sigErr, sig) {
             if (sigErr) return cb(sigErr);
             
@@ -157,6 +157,9 @@ let cryptio = (function() {
     }
 
     set(opts, key, data, cb) {
+      console.log(data)
+      data = opts._libs.decode(data);
+      console.log(data)
       let ret = opts._storage[opts._opts.storage].set(key, data);
       
       if (!ret)
@@ -216,7 +219,20 @@ let cryptio = (function() {
   class crypt {
 
     constructor(opts) {
+/*
+      opts.crypto.key_opts = {
+        
+      };
+      opts.crypto.sig_opts = {
+        
+      };
+      opts.crypto.derive_opts = {
+        
+      };
+*/
+
       this._libs = new libs(opts);
+
       this.machine = window.navigator;
       this._engine = window.crypto || window.msCrypto;
     }
@@ -236,10 +252,10 @@ let cryptio = (function() {
               name: opts.crypto.hashing
             };
       
-      let phash = this._engine.subtle.digest(_opts, _libs.toarraybuffer(str));
+      let phash = this._engine.subtle.digest(_opts, _libs.encode(str));
 
       phash.then(function hashed(hash) {
-        cb(null, _libs.toarraybuffer(hash));
+        cb(null, _libs.encode(hash));
       });
       
       phash.catch(function hashedErr(err) {
@@ -283,7 +299,7 @@ let cryptio = (function() {
             _keyopts = {
               name: 'PBKDF2',
               iterations: opts.crypto.iterations,
-              salt: _libs.toarraybuffer(opts.crypto.salt),
+              salt: _libs.encode(opts.crypto.salt),
               hash: opts.crypto.hashing
             },
             _keycrypto = {
@@ -352,7 +368,7 @@ let cryptio = (function() {
         let psig = _engine.subtle.sign(_sigopts, sigkey, data);
         
         psig.then(function signed(signature) {
-          cb(null, _libs.toarraybuffer(signature));
+          cb(null, _libs.encode(signature));
         });
       
         psig.catch(function signedErr(err) {
@@ -416,20 +432,14 @@ let cryptio = (function() {
       
       let pkey = _engine.subtle.importKey("raw", key, _opts, false, _for);
 
-      try {
-        data = JSON.stringify(data);
-      } catch(err) {
-        // discard err
-      }
-
       pkey.then(function imported(ekey) {
         if (data instanceof ArrayBuffer == false)
-          data = _libs.toarraybuffer(data);
+          data = _libs.encode(data);
 
         _engine.subtle.encrypt(_opts, ekey, data);
         
         pkey.then(function(ct) {
-          cb(null, _libs.toarraybuffer(ct));
+          cb(null, ct);
         });
           
         pkey.catch(function(err) {
@@ -448,8 +458,8 @@ let cryptio = (function() {
         tagLength: opts.crypt.keylength
       },
       opts.passphrase,
-      this._libs.toarraybuffer(data)).then(function(pt) {
-        cb(null, _libs.fromarraybuffer(pt));
+      this._libs.encode(data)).then(function(pt) {
+        cb(null, _libs.decode(pt));
       }).catch(function(err) {
         cb('Error occurred decrypting data; ' + err);
       });
@@ -474,21 +484,20 @@ let cryptio = (function() {
       return obj;
     }
 
-    toarraybuffer(str) {
-      if (typeof str != 'string')
-        str = JSON.stringify(str);
-
-      let buf = new ArrayBuffer(str.length * 2),
-          bufView = new Uint16Array(buf);
-          
-      for (let i=0, strLen=str.length; i<strLen; i++) {
-        bufView[i] = str.charCodeAt(i);
+    encode(data) {
+      if (typeof data != 'string') {
+        try {
+          data = JSON.stringify(Array.from(data));
+        } catch(err) {
+          // discard
+        }
       }
-      return buf;
+
+      return new TextEncoder('utf-8').encode(data);
     }
     
-    fromarraybuffer(buf) {
-      return String.fromCharCode.apply(null, new Uint16Array(buf));
+    decode(data) {
+      return JSON.parse(new TextDecoder('utf-8').decode(data));
     }
   }
 

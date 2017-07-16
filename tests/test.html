@@ -1,9 +1,17 @@
 <html>
     <head>
+        <!-- Required for non-UTF encodings (Polyfill for TextEncoder API) -->
+        <script type="text/javascript" src="../3rd-party/text-encoding/lib/encoding-indexes.js"></script>
+        <script type="text/javascript" src="../3rd-party/text-encoding/lib/encoding.js"></script>
+
+        <!-- Crypto alternative when native support doesn't exist -->
         <script type="text/javascript" src="../3rd-party/sjcl/sjcl.js"></script>
+
+        <!-- Robot, do work -->
         <script type="text/javascript" src="../crypt.io.es6.js"></script>
         <script>
             let opts= {
+                    debug: true,
                     passphrase: 'ABC, easy as 123. 123, easy as ABC'
                 },
                 storage = new cryptio(opts),

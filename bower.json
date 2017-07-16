@@ -1,7 +1,7 @@
 {
   "name": "crypt.io",
   "main": "dist/crypt.io.min.js",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "license": "MIT",
   "homepage": "https://github.com/jas-/crypt.io",
   "authors": [
@@ -23,6 +23,7 @@
     "secStore.js"
   ],
   "dependencies": {
-    "sjcl": "~1.0.6"
+    "sjcl": "~1.0.7",
+    "text-encoding": "~0.6.4"
   }
 }

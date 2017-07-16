@@ -1,3 +1,6 @@
 [submodule "3rd-party/sjcl"]
 	path = 3rd-party/sjcl
 	url = https://github.com/bitwiseshiftleft/sjcl.git
+[submodule "3rd-party/text-encoding"]
+	path = 3rd-party/text-encoding
+	url = https://github.com/inexorabletash/text-encoding
