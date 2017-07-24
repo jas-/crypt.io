@@ -119,11 +119,16 @@ let cryptio = (function() {
 
 
   class storage {
+    
+    constructor(opts) {
+      if (!this.quota(opts.storage))
+        throw new Error('Quota has been exceeded! Aborting.');
+    }
 
     quota(storage) {
-      const max = /local|session/.test(storage) ? 1024 * 1025 * 5 : 1024 * 4,
-            cur = libs.total(storage),
-            total = max - cur;
+      const max = /local|session/.test(storage) ? 1024 * 1025 * 10 : 1024 * 4,
+            cur = this.calculate(storage),
+            total = Number((max - cur).toFixed(0));
 
       return total > 0;
     }
@@ -140,20 +145,6 @@ let cryptio = (function() {
       }
 
       return current ? 3 + ((current.length * 16) / (8 * 1024)) : 0;
-    }
-
-    getsize(obj) {
-
-      let n = 0;
-
-      if (/object/.test(typeof(obj))) {
-        for (const i in obj) {
-          if (obj.hasOwnProperty(obj[i])) n++;
-        }
-      } else if (/array/.test(typeof(obj))) {
-        n = obj.length;
-      }
-      return n;
     }
 
     set(opts, key, data, cb) {
@@ -181,6 +172,9 @@ let cryptio = (function() {
         window.localStorage.setItem(key, obj);
         return true;
       } catch (e) {
+        if (/quota*error/i.test(e.name))
+          throw new Error('Quota for localStorage exceeded!');
+          
         return false;
       }
     }
@@ -202,6 +196,9 @@ let cryptio = (function() {
         window.sessionStorage.setItem(key, obj);
         return true;
       } catch (e) {
+        if (/quota*error/i.test(e.name))
+          throw new Error('Quota for sessionStorage exceeded!');
+
         return false;
       }
     }
@@ -219,18 +216,6 @@ let cryptio = (function() {
   class crypt {
 
     constructor(opts) {
-/*
-      opts.crypto.key_opts = {
-        
-      };
-      opts.crypto.sig_opts = {
-        
-      };
-      opts.crypto.derive_opts = {
-        
-      };
-*/
-
       this._libs = new libs(opts);
 
       this.machine = window.navigator;
