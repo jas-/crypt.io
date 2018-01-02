@@ -1,0 +1,27 @@
+{
+  "name": "crypt.io",
+  "version": "1.0.8",
+  "description": "Encryption enabled browser storage",
+  "main": "dist/crypt.io.min.js",
+  "repository": "https://github.com/jas-/crypt.io",
+  "author": "Jas- <jason.gerfen@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "HTML5",
+    "storage",
+    "storage.js",
+    "encryption",
+    "decryption",
+    "crypto",
+    "sessionStorage",
+    "localStorage",
+    "cookies",
+    "AES",
+    "crypt.io",
+    "secStore.js"
+  ],
+  "bugs": "https://github.com/jas-/crypt.io/issues",
+  "dependencies": {
+    "sjcl": "~1.0.7"
+  }
+}
