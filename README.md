@@ -130,14 +130,21 @@ implications please read
 ## Installation:
 Three methods are available for setup and use; using bower, cloning & manual
 
-### Bower
+### Yarn
+To setup using `yarn`
+
+```sh
+%> yarn add crypt.io
+```
+
+### Bower (depreciated)
 To setup using bower
 
 ```sh
 %> bower install crypt.io
 ```
 
-### Clone
+### Clone w/ `git`
 To setup using git
 
 ```sh
